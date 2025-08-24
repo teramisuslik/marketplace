@@ -2,11 +2,7 @@ package com.example.controller.client;
 
 import com.example.controller.DTO.UserDTO;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @FeignClient(name = "user", url="http://localhost:8082")
 public interface UserClient {
@@ -22,4 +18,7 @@ public interface UserClient {
 
     @GetMapping("/api/user/load_user_by_username")
     UserDTO findUserByUsername(@RequestParam("username") String username);
+
+    @PostMapping("/api/user/userid")
+    Long findUserId(@RequestHeader("Authorization") String token);
 }

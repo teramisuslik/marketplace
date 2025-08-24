@@ -1,11 +1,13 @@
 package com.example.controller.controller;
 
+import com.example.controller.DTO.BuyProductDTO;
 import com.example.controller.DTO.ProductDTO;
 import com.example.controller.DTO.UserDTO;
 import com.example.controller.client.CartClient;
 import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
 import com.example.controller.response.Response;
+import com.example.controller.service.ControllerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,7 @@ public class Controller {
     private final UserClient userClient;
     private final ProductClient productClient;
     private final CartClient cartClient;
+    private final ControllerService controllerService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserDTO userDTO) {
@@ -71,5 +74,17 @@ public class Controller {
     @GetMapping("/display/cast")
     public List<ProductDTO> displayCast(@RequestHeader("Authorization") String token){
         return cartClient.displayCast(token);
+    }
+
+    @PostMapping("/buy_product/{productId}")
+    public ResponseEntity<String> buyProduct(@RequestHeader("Authorization") String token, @PathVariable("productId") Long productId){
+        Long userId = userClient.findUserId(token);
+        BuyProductDTO buyProductDTO = BuyProductDTO
+                .builder()
+                .productId(productId)
+                .userId(userId)
+                .build();
+        controllerService.buyProduct(buyProductDTO);
+        return ResponseEntity.ok("оплата прошла");
     }
 }
