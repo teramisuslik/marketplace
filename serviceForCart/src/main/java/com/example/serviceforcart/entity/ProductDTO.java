@@ -1,4 +1,4 @@
-package com.example.serviceforcast.entity;
+package com.example.serviceforcart.entity;
 
 import lombok.Data;
 

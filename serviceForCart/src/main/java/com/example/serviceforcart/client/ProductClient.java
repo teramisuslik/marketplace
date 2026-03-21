@@ -1,12 +1,10 @@
-package com.example.serviceforcast.client;
+package com.example.serviceforcart.client;
 
 
 
-import com.example.serviceforcast.entity.ProductDTO;
+import com.example.serviceforcart.entity.ProductDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @FeignClient(name = "product", url = "http://localhost:8081")
 public interface ProductClient {

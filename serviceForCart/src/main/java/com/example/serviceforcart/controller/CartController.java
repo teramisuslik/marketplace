@@ -1,12 +1,9 @@
-package com.example.serviceforcast.controller;
+package com.example.serviceforcart.controller;
 
-import com.example.serviceforcast.client.ProductClient;
-import com.example.serviceforcast.client.UserClient;
-import com.example.serviceforcast.entity.ProductDTO;
-import com.example.serviceforcast.service.CartService;
+import com.example.serviceforcart.entity.ProductDTO;
+import com.example.serviceforcart.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;

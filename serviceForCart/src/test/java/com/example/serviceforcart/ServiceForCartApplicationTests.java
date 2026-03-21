@@ -1,10 +1,10 @@
-package com.example.serviceforcast;
+package com.example.serviceforcart;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ServiceForCastApplicationTests {
+class ServiceForCartApplicationTests {
 
     @Test
     void contextLoads() {

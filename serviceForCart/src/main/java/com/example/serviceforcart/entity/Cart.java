@@ -1,4 +1,4 @@
-package com.example.serviceforcast.entity;
+package com.example.serviceforcart.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 @jakarta.persistence.Table(name = "cart")
-public class Table {
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

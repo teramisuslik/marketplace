@@ -1,4 +1,4 @@
-package com.example.serviceforcast.config;
+package com.example.serviceforcart.config;
 
 
 import org.springframework.context.annotation.Bean;
