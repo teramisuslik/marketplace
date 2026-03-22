@@ -1,7 +1,5 @@
 package com.example.serviceforcart.client;
 
-
-
 import com.example.serviceforcart.entity.ProductDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;

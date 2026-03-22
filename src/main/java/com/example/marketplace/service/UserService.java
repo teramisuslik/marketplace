@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    //private final ProductService productService;
     private final JwtTockenUtils jwtTockenUtils;
 
     public void registerUser(UserDTO userDTO) {
@@ -41,16 +40,17 @@ public class UserService {
     }
 
     public User loginUser(UserDTO userDTO) {
-        return userRepository.findByUsername(userDTO.getUsername())
+        return userRepository
+                .findByUsername(userDTO.getUsername())
                 .filter(e -> passwordEncoder.matches(userDTO.getPassword(), e.getPassword()))
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid username or password"));
-
     }
 
     public Long getUserid(String token) {
         token = token.substring(7);
         String username = jwtTockenUtils.getUsernameFromToken(token);
-        User user = userRepository.findByUsername(username)
+        User user = userRepository
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
         return user.getId();
     }
@@ -58,13 +58,16 @@ public class UserService {
     public Role getRole(String token) {
         token = token.substring(7);
         String username = jwtTockenUtils.getUsernameFromToken(token);
-        User user = userRepository.findByUsername(username)
+        User user = userRepository
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
         return user.getRole();
     }
 
     public UserDTO findByUsername(String username) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
 
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername(user.getUsername());
@@ -72,5 +75,4 @@ public class UserService {
         userDTO.setRole(user.getRole());
         return userDTO;
     }
-
 }

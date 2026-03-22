@@ -14,11 +14,10 @@ public class PayListener {
 
     @Transactional
     @KafkaListener(
-        topics = "buy-product",
-        groupId = "buy",
-        properties = {"spring.json.value.default.type=com.example.serviceforpay.DTO.BuyProductDTO"}
-    )
-    public void handleMassage(BuyProductDTO buyProductDTO){
+            topics = "buy-product",
+            groupId = "buy",
+            properties = {"spring.json.value.default.type=com.example.serviceforpay.DTO.BuyProductDTO"})
+    public void handleMassage(BuyProductDTO buyProductDTO) {
         payService.printMassage(buyProductDTO);
     }
 }

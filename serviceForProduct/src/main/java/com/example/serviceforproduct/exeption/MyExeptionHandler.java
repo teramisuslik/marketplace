@@ -1,7 +1,5 @@
 package com.example.serviceforproduct.exeption;
 
-
-
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -13,8 +11,7 @@ public class MyExeptionHandler {
 
     @ExceptionHandler(ChangeSetPersister.NotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handlerNotFoundExeption(NotFoundExeption ex)
-    {
+    public String handlerNotFoundExeption(NotFoundExeption ex) {
         return ex.getMessage();
     }
 }

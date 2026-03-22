@@ -7,7 +7,6 @@ import com.example.marketplace.jwt.JwtTockenUtils;
 import com.example.marketplace.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

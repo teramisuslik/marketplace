@@ -1,6 +1,5 @@
 package com.example.controller.config;
 
-
 import com.example.controller.jwt.JwtTockenFilter;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;
@@ -19,39 +18,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtTockenFilter jwtTockenFilter
-    ) throws Exception {
-        http
-                .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/login",
-                                "/register",
-                                "/register_seller",
-                                "/main/**"
-                        ).permitAll()
-                        .anyRequest().authenticated()
-                )
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTockenFilter jwtTockenFilter)
+            throws Exception {
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(
+                        auth -> auth.requestMatchers("/login", "/register", "/register_seller", "/main/**")
+                                .permitAll()
+                                .anyRequest()
+                                .authenticated())
                 .addFilterBefore(jwtTockenFilter, UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
     @Bean
-    public NewTopic newTopic(){
-        return TopicBuilder
-                .name("buy-product")
-                .partitions(3)
-                .replicas(3)
-                .build();
+    public NewTopic newTopic() {
+        return TopicBuilder.name("buy-product").partitions(3).replicas(3).build();
     }
 }
