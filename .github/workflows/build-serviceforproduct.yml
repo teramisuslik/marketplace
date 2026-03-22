@@ -23,5 +23,5 @@ jobs:
           cache: maven
       - name: Build
         run: |
-          cd serviceForProduct
+          cd ServiceForProduct
           mvn clean verify

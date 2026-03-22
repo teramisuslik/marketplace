@@ -23,5 +23,5 @@ jobs:
           cache: maven
       - name: Build
         run: |
-          cd serviceForCart
+          cd ServiceForCart
           mvn clean verify
