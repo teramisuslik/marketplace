@@ -9,7 +9,5 @@ import org.springframework.test.context.ActiveProfiles;
 class ServiceForProductApplicationTests {
 
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() {}
 }
