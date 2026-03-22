@@ -11,5 +11,4 @@ public class ServiceForProductApplication {
     public static void main(String[] args) {
         SpringApplication.run(ServiceForProductApplication.class, args);
     }
-
 }

@@ -8,12 +8,11 @@ import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
 import com.example.controller.response.Response;
 import com.example.controller.service.ControllerService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Slf4j
@@ -30,6 +29,7 @@ public class Controller {
         userClient.createUser(userDTO);
         return ResponseEntity.ok("регистация прошла успешно");
     }
+
     @PostMapping("/register_seller")
     public ResponseEntity<String> registerSeller(@RequestBody UserDTO userDTO) {
         userClient.createSeller(userDTO);
@@ -44,9 +44,7 @@ public class Controller {
 
     @PostMapping("/addproduct")
     public ResponseEntity<String> addProduct(
-            @RequestHeader("Authorization") String token,
-            @RequestBody ProductDTO productDTO
-    ) {
+            @RequestHeader("Authorization") String token, @RequestBody ProductDTO productDTO) {
         log.info("Original token: {}", token);
 
         productClient.addProduct(token, productDTO);
@@ -55,35 +53,34 @@ public class Controller {
     }
 
     @GetMapping("/main")
-    public List<ProductDTO> allProducts(){
+    public List<ProductDTO> allProducts() {
         return productClient.allProducts();
     }
 
     @GetMapping("/main/{word}")
-    public List<ProductDTO> findProductsByWord(@PathVariable("word") String word){
+    public List<ProductDTO> findProductsByWord(@PathVariable("word") String word) {
         return productClient.findProductsByWord(word);
     }
 
     @PostMapping("/add_product_to_cart/{name}")
-    public ResponseEntity<String> addProductToCart(@RequestHeader("Authorization") String token, @PathVariable String name){
+    public ResponseEntity<String> addProductToCart(
+            @RequestHeader("Authorization") String token, @PathVariable String name) {
         log.info("Original token: {}", token);
-        cartClient.addProductToCart(token,name);
+        cartClient.addProductToCart(token, name);
         return ResponseEntity.ok("товар добавлен в карзину");
     }
 
     @GetMapping("/display/cast")
-    public List<ProductDTO> displayCast(@RequestHeader("Authorization") String token){
+    public List<ProductDTO> displayCast(@RequestHeader("Authorization") String token) {
         return cartClient.displayCast(token);
     }
 
     @PostMapping("/buy_product/{productId}")
-    public ResponseEntity<String> buyProduct(@RequestHeader("Authorization") String token, @PathVariable("productId") Long productId){
+    public ResponseEntity<String> buyProduct(
+            @RequestHeader("Authorization") String token, @PathVariable("productId") Long productId) {
         Long userId = userClient.findUserId(token);
-        BuyProductDTO buyProductDTO = BuyProductDTO
-                .builder()
-                .productId(productId)
-                .userId(userId)
-                .build();
+        BuyProductDTO buyProductDTO =
+                BuyProductDTO.builder().productId(productId).userId(userId).build();
         controllerService.buyProduct(buyProductDTO);
         return ResponseEntity.ok("оплата прошла");
     }

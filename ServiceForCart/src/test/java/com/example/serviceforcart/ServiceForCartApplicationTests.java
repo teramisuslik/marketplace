@@ -9,7 +9,5 @@ import org.springframework.test.context.ActiveProfiles;
 class ServiceForCartApplicationTests {
 
     @Test
-    void contextLoads() {
-    }
-
+    void contextLoads() {}
 }
