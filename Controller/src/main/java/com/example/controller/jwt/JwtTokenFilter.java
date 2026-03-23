@@ -17,9 +17,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 @Component
 @RequiredArgsConstructor
-public class JwtTockenFilter extends OncePerRequestFilter {
+public class JwtTokenFilter extends OncePerRequestFilter {
 
-    private final JwtTockenUtils jwtTockenUtils;
+    private final JwtTokenUtils jwtTokenUtils;
     private final UserClient userClient;
 
     @Override
@@ -31,10 +31,14 @@ public class JwtTockenFilter extends OncePerRequestFilter {
             return;
         }
         String authToken = authHeader.substring(7);
-        String username = jwtTockenUtils.getUsernameFromToken(authToken);
+        String username = jwtTokenUtils.getUsernameFromToken(authToken);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             UserDTO userDto = userClient.findUserByUsername(username);
+            if (userDto == null) {
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             // Преобразуем в UserDetails
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
@@ -42,7 +46,7 @@ public class JwtTockenFilter extends OncePerRequestFilter {
                     .password(userDto.getPassword())
                     .roles(userDto.getRole().name())
                     .build();
-            if (jwtTockenUtils.validateToken(authToken, userDetails)) {
+            if (jwtTokenUtils.validateToken(authToken, userDetails)) {
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
