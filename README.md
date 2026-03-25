@@ -1,6 +1,6 @@
 # Marketplace
 
-маркетплейс на Spring Boot 3.5 и Java 17. Есть JWT, пользователи, товары, корзина, шлюз на Feign и оплата через Kafka.
+Маркетплейс на Spring Boot 3.5 и Java 17. Есть JWT, пользователи, товары, корзина, шлюз на Feign и оплата через Kafka.
 
 ## Модули (порты)
 
@@ -17,15 +17,20 @@
 ## Что нужно поставить
 
 - JDK 17
-- PostgreSQL на `localhost:5432`, в `application.yml` сейчас одна БД `marketplace` (юзеры, товары и корзина в одной базе). Логин/пароль — как у тебя в Postgres; в конфиге по умолчанию `postgres` / `1234`. Другой порт или имя БД — через переменные `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` или правка `application.yml`.
-- Kafka — если будешь гонять покупку (шлюз + ServiceForPay)
+- PostgreSQL на `localhost:5432`, в `application.yml` Каждый микросервис использует свою базу данных:
+  - marketplace -> Users
+  - ServiceForCart -> Cart
+  - ServiceForProduct -> Products.
+  - Сервисы без JPA не требуют БД.
+
+Логин/пароль — как в вашем Postgres; в конфиге по умолчанию `postgres` / `1234`. Другой порт или имя БД — через переменные `SPRING_DATASOURCE_URL`, `SPRING_DATASOURCE_USERNAME`, `SPRING_DATASOURCE_PASSWORD` или правка `application.yml`.
+- Kafka — если будете проверять покупку (шлюз + ServiceForPay)
 - Maven (IntelliJ обычно сама качает зависимости по pom)
 
 ## Как запускать (IntelliJ)
 
-У каждого модуля своё Spring Boot приложение: открываешь класс с `main` и жмёшь зелёную стрелку у метода `main` (или правый клик по классу → Run).
-
-Сначала подними PostgreSQL (и Kafka, если тестируешь покупку). Потом приложения, примерно в таком порядке:
+У каждого модуля своё Spring Boot приложение: открываете микросервис из запускаете класс [название сервиса]Application
+Сначала поднимите PostgreSQL (и Kafka, если тестируете покупку). Потом приложения, примерно в таком порядке:
 
 1. **marketplace** — `MarketplaceApplication` (корень репо, `src/main/java/...`)
 2. **ServiceForProduct** — `ServiceForProductApplication`
@@ -35,7 +40,7 @@
 
 Чтобы не запускать по одному каждый раз, можно в Run → **Edit Configurations** сделать **Compound** и добавить туда несколько Spring Boot конфигов подряд.
 
-Если IDEA не видит `main` в каком-то сервисе — смотри раздел **IntelliJ** в конце (про подключение pom-ов).
+Если IDEA не видит Application класс в каком-то сервисе — смотри раздел **IntelliJ** в конце (про подключение pom-ов).
 
 ## Swagger
 
