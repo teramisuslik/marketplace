@@ -21,11 +21,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtTokenFilter jwtTokenFilter)
             throws Exception {
         http.csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/login", "/register", "/register_seller", "/main/**")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated())
+                .authorizeHttpRequests(auth -> auth.requestMatchers(
+                                "/login",
+                                "/register",
+                                "/register_seller",
+                                "/main/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
         return http.build();
@@ -38,6 +44,6 @@ public class SecurityConfig {
 
     @Bean
     public NewTopic newTopic() {
-        return TopicBuilder.name("buy-product").partitions(3).replicas(3).build();
+        return TopicBuilder.name("buy-product").partitions(3).replicas(1).build();
     }
 }

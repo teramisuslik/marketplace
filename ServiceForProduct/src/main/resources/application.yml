@@ -1,8 +1,8 @@
 spring:
   application:
-  name: serviceForProduct
+    name: serviceForProduct
   datasource:
-    url: jdbc:postgresql://localhost:5432/Products
+    url: jdbc:postgresql://localhost:5432/marketplace
     username: postgres
     password: 1234
   jpa:
