@@ -2,7 +2,7 @@ spring:
   application:
     name: serviceForCart
   datasource:
-    url: jdbc:postgresql://localhost:5432/marketplace
+    url: jdbc:postgresql://localhost:5432/Cart
     username: postgres
     password: 1234
   jpa:
