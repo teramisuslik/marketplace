@@ -3,11 +3,11 @@ name: Build serviceForProduct
 on:
   push:
     paths:
-      - 'serviceForProduct/**'
+      - 'ServiceForProduct/**'
       - '.github/workflows/build-serviceforproduct.yml'
   pull_request:
     paths:
-      - 'serviceForProduct/**'
+      - 'ServiceForProduct/**'
       - '.github/workflows/build-serviceforproduct.yml'
 
 jobs:

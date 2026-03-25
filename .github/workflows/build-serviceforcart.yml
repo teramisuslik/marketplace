@@ -3,11 +3,11 @@ name: Build serviceForCart
 on:
   push:
     paths:
-      - 'serviceForCart/**'
+      - 'ServiceForCart/**'
       - '.github/workflows/build-serviceforcart.yml'
   pull_request:
     paths:
-      - 'serviceForCart/**'
+      - 'ServiceForCart/**'
       - '.github/workflows/build-serviceforcart.yml'
 
 jobs:
