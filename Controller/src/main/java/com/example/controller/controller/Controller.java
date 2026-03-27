@@ -8,6 +8,8 @@ import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
 import com.example.controller.response.Response;
 import com.example.controller.service.ControllerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +44,7 @@ public class Controller {
         return ResponseEntity.ok(new Response(token));
     }
 
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/addproduct")
     public ResponseEntity<String> addProduct(
             @RequestHeader("Authorization") String token, @RequestBody ProductDTO productDTO) {
@@ -62,6 +65,7 @@ public class Controller {
         return productClient.findProductsByWord(word);
     }
 
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/add_product_to_cart/{name}")
     public ResponseEntity<String> addProductToCart(
             @RequestHeader("Authorization") String token, @PathVariable String name) {
@@ -70,11 +74,13 @@ public class Controller {
         return ResponseEntity.ok("товар добавлен в карзину");
     }
 
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/display/cast")
     public List<ProductDTO> displayCast(@RequestHeader("Authorization") String token) {
         return cartClient.displayCast(token);
     }
 
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/buy_product/{productId}")
     public ResponseEntity<String> buyProduct(
             @RequestHeader("Authorization") String token, @PathVariable("productId") Long productId) {

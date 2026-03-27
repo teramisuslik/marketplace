@@ -27,6 +27,6 @@ public class OpenApiConfig {
                                                 .scheme("bearer")
                                                 .bearerFormat("JWT")
                                                 .description(
-                                                        "Значение из ответа POST /login (добавьте префикс Bearer при ручном вводе, в Swagger обычно достаточно токена).")));
+                                                        "Только JWT из поля token в ответе POST /login. Не вставляйте слово Bearer — Swagger подставит его сам; иначе получится двойной Bearer и 403.")));
     }
 }

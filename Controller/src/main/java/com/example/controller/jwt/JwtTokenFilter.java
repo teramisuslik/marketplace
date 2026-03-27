@@ -25,12 +25,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String authToken = extractBearerToken(request.getHeader("Authorization"));
+        if (authToken == null) {
             filterChain.doFilter(request, response);
             return;
         }
-        String authToken = authHeader.substring(7);
         String username = jwtTokenUtils.getUsernameFromToken(authToken);
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
@@ -55,5 +54,30 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Swagger уже шлёт префикс Bearer; если вставить токен с ещё одним "Bearer " или в кавычках из JSON — парсинг JWT
+     * ломается и Spring Security даёт 403.
+     */
+    private static String extractBearerToken(String authHeader) {
+        if (authHeader == null || authHeader.isBlank()) {
+            return null;
+        }
+        String value = authHeader.trim();
+        if (value.length() >= 7 && value.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            value = value.substring(7).trim();
+        } else {
+            return null;
+        }
+        while (value.length() >= 7 && value.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            value = value.substring(7).trim();
+        }
+        if (value.length() >= 2
+                && ((value.startsWith("\"") && value.endsWith("\""))
+                        || (value.startsWith("'") && value.endsWith("'")))) {
+            value = value.substring(1, value.length() - 1).trim();
+        }
+        return value.isEmpty() ? null : value;
     }
 }
