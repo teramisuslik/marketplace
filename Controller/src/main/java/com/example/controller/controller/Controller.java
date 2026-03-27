@@ -9,6 +9,7 @@ import com.example.controller.client.UserClient;
 import com.example.controller.response.Response;
 import com.example.controller.service.ControllerService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,8 @@ public class Controller {
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/addproduct")
     public ResponseEntity<String> addProduct(
-            @RequestHeader("Authorization") String token, @RequestBody ProductDTO productDTO) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @RequestBody ProductDTO productDTO) {
         log.info("Original token: {}", token);
 
         productClient.addProduct(token, productDTO);
@@ -68,7 +70,7 @@ public class Controller {
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/add_product_to_cart/{name}")
     public ResponseEntity<String> addProductToCart(
-            @RequestHeader("Authorization") String token, @PathVariable String name) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token, @PathVariable String name) {
         log.info("Original token: {}", token);
         cartClient.addProductToCart(token, name);
         return ResponseEntity.ok("товар добавлен в карзину");
@@ -76,14 +78,16 @@ public class Controller {
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/display/cast")
-    public List<ProductDTO> displayCast(@RequestHeader("Authorization") String token) {
+    public List<ProductDTO> displayCast(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token) {
         return cartClient.displayCast(token);
     }
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/buy_product/{productId}")
     public ResponseEntity<String> buyProduct(
-            @RequestHeader("Authorization") String token, @PathVariable("productId") Long productId) {
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @PathVariable("productId") Long productId) {
         Long userId = userClient.findUserId(token);
         BuyProductDTO buyProductDTO =
                 BuyProductDTO.builder().productId(productId).userId(userId).build();

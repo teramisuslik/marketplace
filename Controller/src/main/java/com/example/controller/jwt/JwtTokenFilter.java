@@ -1,5 +1,6 @@
 package com.example.controller.jwt;
 
+import com.example.controller.DTO.Role;
 import com.example.controller.DTO.UserDTO;
 import com.example.controller.client.UserClient;
 import jakarta.servlet.FilterChain;
@@ -40,10 +41,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             }
 
             // Преобразуем в UserDetails
+            String roleName = userDto.getRole() != null ? userDto.getRole().name() : Role.USER.name();
             UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                     .username(userDto.getUsername())
                     .password(userDto.getPassword())
-                    .roles(userDto.getRole().name())
+                    .roles(roleName)
                     .build();
             if (jwtTokenUtils.validateToken(authToken, userDetails)) {
                 UsernamePasswordAuthenticationToken authentication =
@@ -67,7 +69,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String value = authHeader.trim();
         if (value.length() >= 7 && value.regionMatches(true, 0, "Bearer ", 0, 7)) {
             value = value.substring(7).trim();
-        } else {
+        } else if (!looksLikeJwt(value)) {
             return null;
         }
         while (value.length() >= 7 && value.regionMatches(true, 0, "Bearer ", 0, 7)) {
@@ -79,5 +81,15 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             value = value.substring(1, value.length() - 1).trim();
         }
         return value.isEmpty() ? null : value;
+    }
+
+    private static boolean looksLikeJwt(String s) {
+        int dots = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '.') {
+                dots++;
+            }
+        }
+        return dots == 2;
     }
 }
