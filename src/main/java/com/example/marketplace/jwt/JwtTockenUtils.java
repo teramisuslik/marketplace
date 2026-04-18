@@ -45,7 +45,7 @@ public class JwtTockenUtils {
                 .compact();
     }
 
-    private Key getSigningKey() {
+    Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secret);
         return Keys.hmacShaKeyFor(keyBytes);
     }
