@@ -2,7 +2,7 @@ package com.example.serviceforproduct.service;
 
 import com.example.serviceforproduct.DTO.ProductDTO;
 import com.example.serviceforproduct.entity.Product;
-import com.example.serviceforproduct.exeption.NotFoundExeption;
+import com.example.serviceforproduct.exception.NotFoundException;
 import com.example.serviceforproduct.reposirory.ProductRepository;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +54,6 @@ public class ProductService {
     }
 
     public Product findByName(String name) {
-        return productRepository.findByName(name).orElseThrow(() -> new NotFoundExeption("Product not found"));
+        return productRepository.findByName(name).orElseThrow(() -> new NotFoundException("Product not found"));
     }
 }
