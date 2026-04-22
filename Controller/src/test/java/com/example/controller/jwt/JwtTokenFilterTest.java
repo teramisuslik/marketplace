@@ -1,10 +1,15 @@
 package com.example.controller.jwt;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 import com.example.controller.DTO.Role;
 import com.example.controller.DTO.UserDTO;
 import com.example.controller.client.UserClient;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,12 +20,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.io.IOException;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class JwtTokenFilterTest {
@@ -93,11 +92,13 @@ class JwtTokenFilterTest {
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertEquals(username, SecurityContextHolder.getContext().getAuthentication().getName());
+        assertEquals(
+                username, SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     @Test
-    void doFilterInternal_validTokenButUserNotFound_shouldProceedWithoutAuthentication() throws ServletException, IOException {
+    void doFilterInternal_validTokenButUserNotFound_shouldProceedWithoutAuthentication()
+            throws ServletException, IOException {
         // Given
         String token = "Bearer valid.jwt.token";
         request.addHeader("Authorization", token);

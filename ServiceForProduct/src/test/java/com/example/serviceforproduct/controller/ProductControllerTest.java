@@ -1,5 +1,10 @@
 package com.example.serviceforproduct.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.serviceforproduct.DTO.ProductDTO;
 import com.example.serviceforproduct.client.UserClient;
 import com.example.serviceforproduct.config.SecurityConfig;
@@ -7,22 +12,15 @@ import com.example.serviceforproduct.entity.Product;
 import com.example.serviceforproduct.entity.Role;
 import com.example.serviceforproduct.service.ProductService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
 @Import(SecurityConfig.class)
@@ -142,8 +140,7 @@ class ProductControllerTest {
         Long id = 1L;
         when(productService.findById(id)).thenReturn(product);
 
-        mockMvc.perform(get("/api/product/find_all_by_id")
-                        .param("id", id.toString()))
+        mockMvc.perform(get("/api/product/find_all_by_id").param("id", id.toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(product.getName()))
                 .andExpect(jsonPath("$.description").value(product.getDescription()))
@@ -157,8 +154,7 @@ class ProductControllerTest {
         Long id = 999L;
         when(productService.findById(id)).thenReturn(null);
 
-        mockMvc.perform(get("/api/product/find_all_by_id")
-                        .param("id", id.toString()))
+        mockMvc.perform(get("/api/product/find_all_by_id").param("id", id.toString()))
                 .andExpect(status().isNotFound());
     }
 }

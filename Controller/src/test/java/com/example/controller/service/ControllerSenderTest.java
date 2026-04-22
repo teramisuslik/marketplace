@@ -1,5 +1,7 @@
 package com.example.controller.service;
 
+import static org.mockito.Mockito.*;
+
 import com.example.controller.DTO.BuyProductDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,9 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.mockito.Mockito.*;
-
 
 @ExtendWith(MockitoExtension.class)
 class ControllerSenderTest {
@@ -30,15 +29,13 @@ class ControllerSenderTest {
     @Test
     void send_shouldCallKafkaTemplate() {
         // Given
-        BuyProductDTO dto = BuyProductDTO.builder()
-                .productId(1L)
-                .userId(2L)
-                .build();
+        BuyProductDTO dto = BuyProductDTO.builder().productId(1L).userId(2L).build();
 
         // When
         controllerSender.send(dto);
 
         // Then
-        verify(kafkaTemplate, times(1)).send(eq("buy-product"), eq(dto.getUserId().toString()), eq(dto));
+        verify(kafkaTemplate, times(1))
+                .send(eq("buy-product"), eq(dto.getUserId().toString()), eq(dto));
     }
 }

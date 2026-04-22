@@ -1,5 +1,11 @@
 package com.example.marketplace.controller;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.marketplace.DTO.UserDTO;
 import com.example.marketplace.config.SecurityConfig;
 import com.example.marketplace.entity.Role;
@@ -14,12 +20,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UserController.class)
 @Import(SecurityConfig.class)
@@ -94,8 +94,7 @@ class UserControllerTest {
         when(userService.getUserid(token)).thenReturn(userId);
 
         // When / Then
-        mockMvc.perform(post("/api/user/userid")
-                        .header("Authorization", token))
+        mockMvc.perform(post("/api/user/userid").header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string("123"));
     }
@@ -107,8 +106,7 @@ class UserControllerTest {
         when(userService.getRole(token)).thenReturn(Role.ADMIN);
 
         // when / then
-        mockMvc.perform(get("/api/user/get_role")
-                        .header("Authorization", token))
+        mockMvc.perform(get("/api/user/get_role").header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("ADMIN"));
     }
@@ -121,8 +119,7 @@ class UserControllerTest {
         when(userService.findByUsername(username)).thenReturn(userDTO);
 
         // When / Then
-        mockMvc.perform(get("/api/user/load_user_by_username")
-                        .param("username", username))
+        mockMvc.perform(get("/api/user/load_user_by_username").param("username", username))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("john"))
                 .andExpect(jsonPath("$.password").value("encoded"))

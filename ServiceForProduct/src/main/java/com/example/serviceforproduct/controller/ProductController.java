@@ -7,11 +7,10 @@ import com.example.serviceforproduct.entity.Role;
 import com.example.serviceforproduct.exception.ForbiddenException;
 import com.example.serviceforproduct.exception.NotFoundException;
 import com.example.serviceforproduct.service.ProductService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @Slf4j

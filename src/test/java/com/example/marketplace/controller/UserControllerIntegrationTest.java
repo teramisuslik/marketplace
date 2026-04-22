@@ -1,5 +1,9 @@
 package com.example.marketplace.controller;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.marketplace.DTO.UserDTO;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
@@ -15,10 +19,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
-
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -68,17 +68,20 @@ class UserControllerIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         // Then
         String usernameFromToken = jwtTockenUtils.getUsernameFromToken(token);
         assertThat(usernameFromToken).isEqualTo("Anthony");
 
         // When
-        String userId = mockMvc.perform(post("/api/user/userid")
-                        .header("Authorization", "Bearer " + token))
+        String userId = mockMvc.perform(post("/api/user/userid").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
         // Then
         assertThat(userId).isEqualTo(savedUser.getId().toString());
@@ -96,8 +99,7 @@ class UserControllerIntegrationTest {
         String token = jwtTockenUtils.generateTocken(user);
 
         // when / then
-        mockMvc.perform(get("/api/user/get_role")
-                        .header("Authorization", "Bearer " + token))
+        mockMvc.perform(get("/api/user/get_role").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").value("SELLER"));
     }
@@ -113,8 +115,7 @@ class UserControllerIntegrationTest {
         userRepository.save(user);
 
         // when / then
-        mockMvc.perform(get("/api/user/load_user_by_username")
-                        .param("username", "Vladislav"))
+        mockMvc.perform(get("/api/user/load_user_by_username").param("username", "Vladislav"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("Vladislav"))
                 .andExpect(jsonPath("$.password").value("encoded"))

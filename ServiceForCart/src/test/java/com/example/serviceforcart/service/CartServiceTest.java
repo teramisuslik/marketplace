@@ -1,21 +1,20 @@
 package com.example.serviceforcart.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.example.serviceforcart.client.ProductClient;
 import com.example.serviceforcart.client.UserClient;
 import com.example.serviceforcart.entity.Cart;
 import com.example.serviceforcart.entity.ProductDTO;
 import com.example.serviceforcart.repository.CartRepository;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceTest {

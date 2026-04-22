@@ -1,15 +1,14 @@
 package com.example.marketplace.jwt;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Date;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class JwtTockenUtilsTest {
 

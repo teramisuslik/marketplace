@@ -1,7 +1,13 @@
 package com.example.serviceforpay.integration;
 
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+
 import com.example.serviceforpay.DTO.BuyProductDTO;
 import com.example.serviceforpay.service.PayService;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.jupiter.api.Test;
@@ -17,15 +23,10 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-
 @SpringBootTest
-@EmbeddedKafka(partitions = 1, topics = {"buy-product"})
+@EmbeddedKafka(
+        partitions = 1,
+        topics = {"buy-product"})
 class KafkaListenerTest {
 
     @Autowired
@@ -48,7 +49,8 @@ class KafkaListenerTest {
         }
 
         @Bean
-        public KafkaTemplate<String, BuyProductDTO> kafkaTemplate(ProducerFactory<String, BuyProductDTO> producerFactory) {
+        public KafkaTemplate<String, BuyProductDTO> kafkaTemplate(
+                ProducerFactory<String, BuyProductDTO> producerFactory) {
             return new KafkaTemplate<>(producerFactory);
         }
     }
@@ -56,10 +58,7 @@ class KafkaListenerTest {
     @Test
     void shouldConsumeMessageAndCallPayService() throws Exception {
         // Given
-        BuyProductDTO dto = BuyProductDTO.builder()
-                .productId(999L)
-                .userId(888L)
-                .build();
+        BuyProductDTO dto = BuyProductDTO.builder().productId(999L).userId(888L).build();
 
         // When
         kafkaTemplate.send("buy-product", dto).get(5, TimeUnit.SECONDS);
