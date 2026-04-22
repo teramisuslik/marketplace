@@ -1,4 +1,4 @@
-package com.example.serviceforproduct.reposirory;
+package com.example.serviceforproduct.repository;
 
 import com.example.serviceforproduct.entity.Product;
 import java.util.List;

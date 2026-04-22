@@ -3,7 +3,7 @@ package com.example.serviceforproduct.service;
 import com.example.serviceforproduct.DTO.ProductDTO;
 import com.example.serviceforproduct.entity.Product;
 import com.example.serviceforproduct.exception.NotFoundException;
-import com.example.serviceforproduct.reposirory.ProductRepository;
+import com.example.serviceforproduct.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
