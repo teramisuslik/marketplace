@@ -163,8 +163,7 @@
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>3.6.0</version>
                 <configuration>
-                    <configLocation>${maven.multiModuleProjectDirectory}/checkstyle.xml</configLocation>
-                    <encoding>UTF-8</encoding>
+                    <configLocation>${project.basedir}/../checkstyle.xml</configLocation>                    <encoding>UTF-8</encoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
