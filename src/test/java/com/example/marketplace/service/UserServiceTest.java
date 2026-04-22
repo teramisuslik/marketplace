@@ -1,10 +1,16 @@
 package com.example.marketplace.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
 import com.example.marketplace.DTO.UserDTO;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
 import com.example.marketplace.repository.UserRepository;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,13 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
@@ -64,11 +63,10 @@ class UserServiceTest {
         userService.registerUser(userDTO);
 
         // Then
-        verify(userRepository).save(argThat(u ->
-                u.getUsername().equals(userDTO.getUsername()) &&
-                        u.getPassword().equals("encodedPassword") &&
-                        u.getRole() == Role.USER
-        ));
+        verify(userRepository)
+                .save(argThat(u -> u.getUsername().equals(userDTO.getUsername())
+                        && u.getPassword().equals("encodedPassword")
+                        && u.getRole() == Role.USER));
     }
 
     @Test
@@ -82,21 +80,18 @@ class UserServiceTest {
         User savedUser = userService.registerSeller(userDTO);
 
         // Then
-        verify(userRepository).save(argThat(u ->
-                u.getUsername().equals(userDTO.getUsername()) &&
-                        u.getPassword().equals("encodedPassword") &&
-                        u.getRole() == Role.SELLER
-        ));
+        verify(userRepository)
+                .save(argThat(u -> u.getUsername().equals(userDTO.getUsername())
+                        && u.getPassword().equals("encodedPassword")
+                        && u.getRole() == Role.SELLER));
         assertThat(savedUser).isNotNull();
     }
 
     @Test
     void loginUser_WithValidCredentials_ShouldReturnUser() {
         // Given
-        when(userRepository.findByUsername(userDTO.getUsername()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword()))
-                .thenReturn(true);
+        when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword())).thenReturn(true);
 
         // When
         User result = userService.loginUser(userDTO);
@@ -108,8 +103,7 @@ class UserServiceTest {
     @Test
     void loginUser_WithInvalidUsername_ShouldThrowUsernameNotFoundException() {
         // Given
-        when(userRepository.findByUsername(userDTO.getUsername()))
-                .thenReturn(Optional.empty());
+        when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.empty());
 
         // When / Then
         assertThatThrownBy(() -> userService.loginUser(userDTO))
@@ -120,10 +114,8 @@ class UserServiceTest {
     @Test
     void loginUser_WithInvalidPassword_ShouldThrowUsernameNotFoundException() {
         // Given
-        when(userRepository.findByUsername(userDTO.getUsername()))
-                .thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword()))
-                .thenReturn(false);
+        when(userRepository.findByUsername(userDTO.getUsername())).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(userDTO.getPassword(), user.getPassword())).thenReturn(false);
 
         // When / Then
         assertThatThrownBy(() -> userService.loginUser(userDTO))
