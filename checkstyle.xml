@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="warning"/>
+
+    <!-- Проверка длины строки – на уровне файла -->
+    <module name="LineLength">
+        <property name="max" value="120"/>
+    </module>
+
+    <module name="TreeWalker">
+        <!-- Запрет импорта * -->
+        <module name="AvoidStarImport"/>
+        <!-- Неиспользуемые импорты -->
+        <module name="UnusedImports"/>
+        <!-- Именование методов -->
+        <module name="MethodName"/>
+        <!-- Именование констант -->
+        <module name="ConstantName"/>
+        <!-- Именование локальных переменных -->
+        <module name="LocalVariableName"/>
+        <!-- Именование полей -->
+        <module name="MemberName"/>
+        <!-- Именование пакетов -->
+        <module name="PackageName"/>
+        <!-- Именование типов -->
+        <module name="TypeName"/>
+    </module>
+</module>

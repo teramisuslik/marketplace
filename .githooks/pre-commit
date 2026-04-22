@@ -1,0 +1,9 @@
+#!/bin/sh
+echo "Applying Spotless formatting..."
+cd marketplace && mvn spotless:apply && cd ..
+cd Controller && mvn spotless:apply && cd ..
+cd ServiceForCart && mvn spotless:apply && cd ..
+cd ServiceForProduct && mvn spotless:apply && cd ..
+cd ServiceForPay && mvn spotless:apply && cd ..
+
+git add -u
