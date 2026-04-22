@@ -1,18 +1,17 @@
 package com.example.controller.jwt;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.security.Key;
+import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.security.Key;
-import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class JwtTokenUtilsTest {
 
@@ -45,11 +44,8 @@ class JwtTokenUtilsTest {
         // Given
         String username = "testuser";
         String token = createToken(username, 1000 * 60 * 60);
-        UserDetails userDetails = User.builder()
-                .username(username)
-                .password("")
-                .roles("USER")
-                .build();
+        UserDetails userDetails =
+                User.builder().username(username).password("").roles("USER").build();
 
         // When
         boolean valid = jwtUtils.validateToken(token, userDetails);
@@ -63,11 +59,8 @@ class JwtTokenUtilsTest {
         // Given
         String username = "testuser";
         String token = createToken(username, -1000);
-        UserDetails userDetails = User.builder()
-                .username(username)
-                .password("")
-                .roles("USER")
-                .build();
+        UserDetails userDetails =
+                User.builder().username(username).password("").roles("USER").build();
 
         // When
         boolean valid = jwtUtils.validateToken(token, userDetails);
@@ -80,11 +73,8 @@ class JwtTokenUtilsTest {
     void validateToken_wrongUsername_shouldReturnFalse() {
         // Given
         String token = createToken("testuser", 1000 * 60 * 60);
-        UserDetails userDetails = User.builder()
-                .username("wronguser")
-                .password("")
-                .roles("USER")
-                .build();
+        UserDetails userDetails =
+                User.builder().username("wronguser").password("").roles("USER").build();
 
         // When
         boolean valid = jwtUtils.validateToken(token, userDetails);

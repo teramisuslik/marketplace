@@ -1,9 +1,15 @@
 package com.example.serviceforcart.controller;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.serviceforcart.config.SecurityConfig;
 import com.example.serviceforcart.entity.ProductDTO;
 import com.example.serviceforcart.service.CartService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -11,13 +17,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(CartController.class)
 @Import(SecurityConfig.class)
@@ -57,9 +56,7 @@ class CartControllerTest {
 
         when(cartService.getCart(anyString())).thenReturn(expectedProducts);
 
-        mockMvc.perform(get("/api/cart/display")
-                        .header("Authorization", token)
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get("/api/cart/display").header("Authorization", token).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(expectedProducts)));
 

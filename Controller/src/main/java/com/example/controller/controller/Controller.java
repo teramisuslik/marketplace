@@ -78,8 +78,7 @@ public class Controller {
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/display/cast")
-    public List<ProductDTO> displayCast(
-            @Parameter(hidden = true) @RequestHeader("Authorization") String token) {
+    public List<ProductDTO> displayCast(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
         return cartClient.displayCast(token);
     }
 

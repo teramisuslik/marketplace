@@ -1,9 +1,13 @@
 #!/bin/sh
 echo "Applying Spotless formatting..."
-cd marketplace && mvn spotless:apply && cd ..
-cd Controller && mvn spotless:apply && cd ..
-cd ServiceForCart && mvn spotless:apply && cd ..
-cd ServiceForProduct && mvn spotless:apply && cd ..
-cd ServiceForPay && mvn spotless:apply && cd ..
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
+./mvnw spotless:apply -f marketplace/pom.xml
+./mvnw spotless:apply -f Controller/pom.xml
+./mvnw spotless:apply -f ServiceForCart/pom.xml
+./mvnw spotless:apply -f ServiceForProduct/pom.xml
+./mvnw spotless:apply -f ServiceForPay/pom.xml
 
 git add -u

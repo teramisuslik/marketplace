@@ -1,10 +1,16 @@
 package com.example.controller.controller;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import com.example.controller.DTO.*;
 import com.example.controller.client.*;
 import com.example.controller.jwt.JwtTokenUtils;
 import com.example.controller.service.ControllerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,13 +19,6 @@ import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(
         value = Controller.class,
@@ -149,8 +148,7 @@ class ControllerTest {
         doNothing().when(cartClient).addProductToCart(anyString(), anyString());
 
         // When & Then
-        mockMvc.perform(post("/add_product_to_cart/{name}", productName)
-                        .header("Authorization", token))
+        mockMvc.perform(post("/add_product_to_cart/{name}", productName).header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string("товар добавлен в карзину"));
 
@@ -165,8 +163,7 @@ class ControllerTest {
         when(cartClient.displayCast(token)).thenReturn(cart);
 
         // When & Then
-        mockMvc.perform(get("/display/cast")
-                        .header("Authorization", token))
+        mockMvc.perform(get("/display/cast").header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(cart)));
     }
@@ -181,15 +178,15 @@ class ControllerTest {
         doNothing().when(controllerService).buyProduct(any(BuyProductDTO.class));
 
         // When & Then
-        mockMvc.perform(post("/buy_product/{productId}", productId)
-                        .header("Authorization", token))
+        mockMvc.perform(post("/buy_product/{productId}", productId).header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().string("оплата прошла"));
 
         verify(userClient, times(1)).findUserId(token);
-        verify(controllerService, times(1)).buyProduct(BuyProductDTO.builder()
-                .productId(productId)
-                .userId(userId)
-                .build());
+        verify(controllerService, times(1))
+                .buyProduct(BuyProductDTO.builder()
+                        .productId(productId)
+                        .userId(userId)
+                        .build());
     }
 }
