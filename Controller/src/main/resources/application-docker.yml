@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: kafka:9092
+app:
+  upload:
+    dir: /workspace/uploads
+  feign:
+    user:
+      url: http://users:8082
+    product:
+      url: http://product:8081
+    cart:
+      url: http://cart:8083
+assistant:
+  ollama-base-url: http://ollama:11434

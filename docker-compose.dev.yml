@@ -1,0 +1,155 @@
+# Полный dev-стек: Postgres + все Spring-сервисы + Vite-фронт.
+# Инфраструктура (Kafka, Ollama) — из основного docker-compose.yml.
+#
+# Запуск из корня репозитория:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up
+#
+# Java hot reload: в контейнере spring-boot:run + DevTools. После правок в .java
+# выполни на хосте сборку модуля (IDE или ./mvnw compile -pl …), чтобы обновился
+# target/classes — DevTools перезапустит приложение в контейнере.
+#
+# Фронт: Vite на хосте http://localhost:5174 (внутри контейнера порт 5173).
+# API с хоста: см. VITE_API_URL (контроллер проброшен на 28085 при конфликте с локальными :808x).
+
+services:
+  postgres:
+    profiles: ["dev"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      # Host 5432 часто занят локальным Postgres — снаружи 5433, внутри сети по-прежнему postgres:5432
+      - "5433:5432"
+    volumes:
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/00-init-databases.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  users:
+    profiles: ["dev"]
+    image: eclipse-temurin:17-jdk-jammy
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven_cache:/root/.m2
+    command: >-
+      bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
+    ports:
+      - "28082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  product:
+    profiles: ["dev"]
+    image: eclipse-temurin:17-jdk-jammy
+    working_dir: /workspace/ServiceForProduct
+    volumes:
+      - ./ServiceForProduct:/workspace/ServiceForProduct
+      - ./checkstyle.xml:/workspace/checkstyle.xml:ro
+      - maven_cache:/root/.m2
+    command: >-
+      bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
+    ports:
+      - "28081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      users:
+        condition: service_started
+
+  cart:
+    profiles: ["dev"]
+    image: eclipse-temurin:17-jdk-jammy
+    working_dir: /workspace/ServiceForCart
+    volumes:
+      - ./ServiceForCart:/workspace/ServiceForCart
+      - ./checkstyle.xml:/workspace/checkstyle.xml:ro
+      - maven_cache:/root/.m2
+    command: >-
+      bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
+    ports:
+      - "28083:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+      users:
+        condition: service_started
+      product:
+        condition: service_started
+
+  pay:
+    profiles: ["dev"]
+    image: eclipse-temurin:17-jdk-jammy
+    working_dir: /workspace/ServiceForPay
+    volumes:
+      - ./ServiceForPay:/workspace/ServiceForPay
+      - ./checkstyle.xml:/workspace/checkstyle.xml:ro
+      - maven_cache:/root/.m2
+    command: >-
+      bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
+    ports:
+      - "28086:8086"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      kafka:
+        condition: service_healthy
+
+  controller:
+    profiles: ["dev"]
+    image: eclipse-temurin:17-jdk-jammy
+    working_dir: /workspace/Controller
+    volumes:
+      - ./Controller:/workspace/Controller
+      - ./checkstyle.xml:/workspace/checkstyle.xml:ro
+      - maven_cache:/root/.m2
+    command: >-
+      bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
+    ports:
+      - "28085:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    depends_on:
+      kafka:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      users:
+        condition: service_started
+      product:
+        condition: service_started
+      cart:
+        condition: service_started
+
+  frontend:
+    profiles: ["dev"]
+    image: node:22-bookworm
+    working_dir: /app
+    environment:
+      HUSKY: "0"
+      # С хоста браузер ходит на проброшенный порт контроллера
+      VITE_API_URL: "http://localhost:28085"
+    volumes:
+      - ./frontend_for_pius:/app
+      - frontend_node_modules:/app/node_modules
+    ports:
+      - "5174:5173"
+    command: >-
+      sh -c "npm install --no-audit --fund=false && npm run dev -- --host 0.0.0.0 --port 5173"
+    depends_on:
+      - controller
+
+volumes:
+  maven_cache:
+  frontend_node_modules:

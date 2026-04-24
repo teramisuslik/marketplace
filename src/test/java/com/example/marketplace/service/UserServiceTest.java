@@ -50,12 +50,14 @@ class UserServiceTest {
                 .username("testuser")
                 .password("encodedPassword")
                 .role(Role.USER)
+                .fullName("Test User")
                 .build();
     }
 
     @Test
     void registerUser_ShouldSaveUserWithEncodedPasswordAndRoleUser() {
         // Given
+        userDTO.setFullName("  Иван  ");
         when(passwordEncoder.encode(userDTO.getPassword())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(user);
 
@@ -66,7 +68,8 @@ class UserServiceTest {
         verify(userRepository)
                 .save(argThat(u -> u.getUsername().equals(userDTO.getUsername())
                         && u.getPassword().equals("encodedPassword")
-                        && u.getRole() == Role.USER));
+                        && u.getRole() == Role.USER
+                        && "Иван".equals(u.getFullName())));
     }
 
     @Test
@@ -178,6 +181,7 @@ class UserServiceTest {
         assertThat(found.getUsername()).isEqualTo("testuser");
         assertThat(found.getPassword()).isEqualTo("encodedPassword");
         assertThat(found.getRole()).isEqualTo(Role.USER);
+        assertThat(found.getFullName()).isEqualTo("Test User");
     }
 
     @Test

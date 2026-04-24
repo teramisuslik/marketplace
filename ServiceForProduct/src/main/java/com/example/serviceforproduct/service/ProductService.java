@@ -24,11 +24,14 @@ public class ProductService {
         List<ProductDTO> listProductDTOs = new ArrayList<>();
         for (Product product : listProducts) {
             ProductDTO productDTO = new ProductDTO();
+            productDTO.setId(product.getId());
             productDTO.setName(product.getName());
             productDTO.setDescription(product.getDescription());
             productDTO.setRating(product.getRating());
             productDTO.setSellerId(product.getSellerId());
             productDTO.setCountOfProduct(product.getCountOfProduct());
+            productDTO.setPrice(product.getPrice());
+            productDTO.setImageUrl(product.getImageUrl());
             listProductDTOs.add(productDTO);
         }
         return listProductDTOs;
@@ -39,11 +42,14 @@ public class ProductService {
         List<ProductDTO> listProductDTOs = new ArrayList<>();
         for (Product product : listProducts) {
             ProductDTO productDTO = new ProductDTO();
+            productDTO.setId(product.getId());
             productDTO.setName(product.getName());
             productDTO.setDescription(product.getDescription());
             productDTO.setRating(product.getRating());
             productDTO.setSellerId(product.getSellerId());
             productDTO.setCountOfProduct(product.getCountOfProduct());
+            productDTO.setPrice(product.getPrice());
+            productDTO.setImageUrl(product.getImageUrl());
             listProductDTOs.add(productDTO);
         }
         return listProductDTOs;

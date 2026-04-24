@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 
-@FeignClient(name = "cart", url = "http://localhost:8083")
+@FeignClient(name = "cart", url = "${app.feign.cart.url:http://localhost:8083}")
 public interface CartClient {
 
     @PostMapping("/api/cart/add_product_to_cart/{name}")

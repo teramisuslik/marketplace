@@ -34,6 +34,13 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    /** Имя для отображения (как ввёл пользователь при регистрации) */
+    private String fullName;
+
+    private String email;
+
+    private String phone;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

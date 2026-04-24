@@ -1,6 +1,14 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
   application:
     name: Controller
+  devtools:
+    restart:
+      poll-interval: 2s
+      quiet-period: 1s
   docker:
     compose:
       enabled: false
@@ -20,5 +28,22 @@ spring:
                 headers: false
 topic:
   send: "buy-product"
+app:
+  upload:
+    dir: ${user.home}/.marketplace-uploads
+  feign:
+    user:
+      url: http://localhost:8082
+    product:
+      url: http://localhost:8081
+    cart:
+      url: http://localhost:8083
+assistant:
+  ollama-base-url: http://127.0.0.1:11434
+  # По умолчанию лёгкая модель (8B нужен запас RAM ~5+ GiB под Ollama): см. README.
+  model: llama3.2:latest
+  max-catalog-items: 500
+  # Строгий JSON от Ollama; у очень слабых моделей можно попробовать false
+  response-format-json-object: true
 server:
   port: 8085

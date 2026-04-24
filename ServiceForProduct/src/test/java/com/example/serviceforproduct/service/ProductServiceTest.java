@@ -39,14 +39,19 @@ class ProductServiceTest {
                 .countOfProduct(10)
                 .rating(4.5f)
                 .sellerId(100L)
+                .price(1990.0)
+                .imageUrl("https://example.com/p.png")
                 .build();
 
         productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
         productDTO.setName(product.getName());
         productDTO.setDescription(product.getDescription());
         productDTO.setCountOfProduct(product.getCountOfProduct());
         productDTO.setRating(product.getRating());
         productDTO.setSellerId(product.getSellerId());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setImageUrl(product.getImageUrl());
     }
 
     @Test
@@ -73,11 +78,14 @@ class ProductServiceTest {
         // Then
         assertThat(result).hasSize(1);
         ProductDTO dto = result.get(0);
+        assertThat(dto.getId()).isEqualTo(product.getId());
         assertThat(dto.getName()).isEqualTo(product.getName());
         assertThat(dto.getDescription()).isEqualTo(product.getDescription());
         assertThat(dto.getCountOfProduct()).isEqualTo(product.getCountOfProduct());
         assertThat(dto.getRating()).isEqualTo(product.getRating());
         assertThat(dto.getSellerId()).isEqualTo(product.getSellerId());
+        assertThat(dto.getPrice()).isEqualTo(product.getPrice());
+        assertThat(dto.getImageUrl()).isEqualTo(product.getImageUrl());
         verify(productRepository, times(1)).findAll();
     }
 
@@ -93,6 +101,7 @@ class ProductServiceTest {
 
         // Then
         assertThat(result).hasSize(1);
+        assertThat(result.get(0).getId()).isEqualTo(product.getId());
         assertThat(result.get(0).getName()).isEqualTo(product.getName());
         verify(productRepository, times(1)).findByWord(keyword);
     }

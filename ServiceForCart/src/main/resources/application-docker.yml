@@ -1,0 +1,9 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/Cart
+app:
+  feign:
+    user:
+      url: http://users:8082
+    product:
+      url: http://product:8081

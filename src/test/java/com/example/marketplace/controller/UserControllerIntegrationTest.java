@@ -46,7 +46,10 @@ class UserControllerIntegrationTest {
     @Test
     void registerAndLogin_ShouldWorkEndToEnd() throws Exception {
         // Given
-        UserDTO registerDto = new UserDTO("Anthony", "secret", Role.USER);
+        UserDTO registerDto = new UserDTO();
+        registerDto.setUsername("Anthony");
+        registerDto.setPassword("secret");
+        registerDto.setRole(Role.USER);
         String json = objectMapper.writeValueAsString(registerDto);
 
         // When
@@ -61,7 +64,9 @@ class UserControllerIntegrationTest {
         assertThat(savedUser.getPassword()).isNotEqualTo("secret");
 
         // When
-        UserDTO loginDto = new UserDTO("Anthony", "secret", null);
+        UserDTO loginDto = new UserDTO();
+        loginDto.setUsername("Anthony");
+        loginDto.setPassword("secret");
         String loginJson = objectMapper.writeValueAsString(loginDto);
 
         String token = mockMvc.perform(post("/api/user/login")

@@ -1,6 +1,8 @@
 package com.example.marketplace.service;
 
+import com.example.marketplace.DTO.UpdateProfileRequest;
 import com.example.marketplace.DTO.UserDTO;
+import com.example.marketplace.DTO.UserProfileDTO;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
@@ -24,6 +26,7 @@ public class UserService {
                 .username(userDTO.getUsername())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
                 .role(Role.USER)
+                .fullName(trimFullName(userDTO.getFullName()))
                 .build();
 
         userRepository.save(user);
@@ -34,6 +37,7 @@ public class UserService {
                 .username(userDTO.getUsername())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
                 .role(Role.SELLER)
+                .fullName(trimFullName(userDTO.getFullName()))
                 .build();
 
         return userRepository.save(user);
@@ -73,6 +77,45 @@ public class UserService {
         userDTO.setUsername(user.getUsername());
         userDTO.setPassword(user.getPassword());
         userDTO.setRole(user.getRole());
+        userDTO.setFullName(user.getFullName());
         return userDTO;
+    }
+
+    public UserProfileDTO getProfile(String authorization) {
+        String token = authorization.substring(7);
+        String username = jwtTockenUtils.getUsernameFromToken(token);
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
+        return new UserProfileDTO(
+                user.getUsername(), user.getFullName(), user.getEmail(), user.getPhone(), user.getRole());
+    }
+
+    public void updateProfile(String authorization, UpdateProfileRequest body) {
+        String token = authorization.substring(7);
+        String username = jwtTockenUtils.getUsernameFromToken(token);
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
+        user.setFullName(trimFullName(body.getFullName()));
+        user.setEmail(trimNullable(body.getEmail()));
+        user.setPhone(trimNullable(body.getPhone()));
+        userRepository.save(user);
+    }
+
+    private static String trimFullName(String fullName) {
+        if (fullName == null) {
+            return null;
+        }
+        String t = fullName.trim();
+        return t.isEmpty() ? null : t;
+    }
+
+    private static String trimNullable(String value) {
+        if (value == null) {
+            return null;
+        }
+        String t = value.trim();
+        return t.isEmpty() ? null : t;
     }
 }

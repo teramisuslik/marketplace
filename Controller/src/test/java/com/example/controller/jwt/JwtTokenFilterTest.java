@@ -77,7 +77,10 @@ class JwtTokenFilterTest {
         request.addHeader("Authorization", token);
         String username = "testuser";
         when(jwtUtils.getUsernameFromToken(anyString())).thenReturn(username);
-        UserDTO userDto = new UserDTO(username, "password", Role.USER);
+        UserDTO userDto = new UserDTO();
+        userDto.setUsername(username);
+        userDto.setPassword("password");
+        userDto.setRole(Role.USER);
         when(userClient.findUserByUsername(username)).thenReturn(userDto);
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(username)
@@ -121,7 +124,10 @@ class JwtTokenFilterTest {
         request.addHeader("Authorization", token);
         String username = "testuser";
         when(jwtUtils.getUsernameFromToken(anyString())).thenReturn(username);
-        UserDTO userDto = new UserDTO(username, "password", Role.USER);
+        UserDTO userDto = new UserDTO();
+        userDto.setUsername(username);
+        userDto.setPassword("password");
+        userDto.setRole(Role.USER);
         when(userClient.findUserByUsername(username)).thenReturn(userDto);
         UserDetails userDetails = org.springframework.security.core.userdetails.User.builder()
                 .username(username)

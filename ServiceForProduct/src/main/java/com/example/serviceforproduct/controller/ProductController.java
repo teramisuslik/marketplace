@@ -31,6 +31,8 @@ public class ProductController {
                     .countOfProduct(productDTO.getCountOfProduct())
                     .rating(productDTO.getRating())
                     .sellerId(userClient.getUserId(token))
+                    .price(productDTO.getPrice() != null ? productDTO.getPrice() : 0.0)
+                    .imageUrl(productDTO.getImageUrl())
                     .build();
             productService.createProduct(product);
         } else {
@@ -60,11 +62,14 @@ public class ProductController {
             throw new NotFoundException("Product not found with id: " + id);
         }
         ProductDTO productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
         productDTO.setName(product.getName());
         productDTO.setDescription(product.getDescription());
         productDTO.setRating(product.getRating());
         productDTO.setSellerId(product.getSellerId());
         productDTO.setCountOfProduct(product.getCountOfProduct());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setImageUrl(product.getImageUrl());
         return productDTO;
     }
 }

@@ -1,6 +1,10 @@
 spring:
   application:
-  name: ServiceForPay
+    name: ServiceForPay
+  devtools:
+    restart:
+      poll-interval: 2s
+      quiet-period: 1s
   kafka:
     bootstrap-servers: localhost:29092
     consumer:

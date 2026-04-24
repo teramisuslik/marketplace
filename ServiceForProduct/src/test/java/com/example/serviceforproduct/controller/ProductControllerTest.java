@@ -45,11 +45,13 @@ class ProductControllerTest {
     @BeforeEach
     void setUp() {
         productDTO = new ProductDTO();
+        productDTO.setId(1L);
         productDTO.setName("Test Product");
         productDTO.setDescription("Test Description");
         productDTO.setCountOfProduct(10);
         productDTO.setRating(4.5f);
         productDTO.setSellerId(100L);
+        productDTO.setPrice(1990.0);
 
         product = Product.builder()
                 .id(1L)
@@ -58,6 +60,7 @@ class ProductControllerTest {
                 .countOfProduct(10)
                 .rating(4.5f)
                 .sellerId(100L)
+                .price(1990.0)
                 .build();
     }
 
@@ -101,6 +104,7 @@ class ProductControllerTest {
         mockMvc.perform(get("/api/product/main"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value(productDTO.getName()))
                 .andExpect(jsonPath("$[0].description").value(productDTO.getDescription()))
                 .andExpect(jsonPath("$[0].countOfProduct").value(productDTO.getCountOfProduct()))
@@ -118,6 +122,7 @@ class ProductControllerTest {
 
         mockMvc.perform(get("/api/product/main/{word}", word))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[0].name").value(productDTO.getName()));
 
         verify(productService).findByWord(word);
@@ -142,6 +147,7 @@ class ProductControllerTest {
 
         mockMvc.perform(get("/api/product/find_all_by_id").param("id", id.toString()))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value(product.getName()))
                 .andExpect(jsonPath("$.description").value(product.getDescription()))
                 .andExpect(jsonPath("$.countOfProduct").value(product.getCountOfProduct()))

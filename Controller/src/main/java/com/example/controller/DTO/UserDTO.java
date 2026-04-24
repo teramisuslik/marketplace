@@ -1,14 +1,15 @@
 package com.example.controller.DTO;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class UserDTO {
     private String username;
     private String password;
     private Role role;
+
+    /** Имя; передаётся в сервис пользователей при регистрации */
+    private String fullName;
 }

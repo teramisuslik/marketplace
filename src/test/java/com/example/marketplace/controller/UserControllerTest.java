@@ -1,16 +1,21 @@
 package com.example.marketplace.controller;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.refEq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.example.marketplace.DTO.UpdateProfileRequest;
 import com.example.marketplace.DTO.UserDTO;
+import com.example.marketplace.DTO.UserProfileDTO;
 import com.example.marketplace.config.SecurityConfig;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
+import com.example.marketplace.service.ShopOrderService;
 import com.example.marketplace.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,9 @@ class UserControllerTest {
     private UserService userService;
 
     @MockitoBean
+    private ShopOrderService shopOrderService;
+
+    @MockitoBean
     private JwtTockenUtils jwtTockenUtils;
 
     @Autowired
@@ -40,7 +48,10 @@ class UserControllerTest {
     @Test
     void register_ShouldCallService() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("john", "secret", Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("john");
+        userDTO.setPassword("secret");
+        userDTO.setRole(Role.USER);
         String json = objectMapper.writeValueAsString(userDTO);
 
         // When / Then
@@ -55,7 +66,10 @@ class UserControllerTest {
     @Test
     void registerSeller_ShouldCallService() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("seller", "secret", Role.SELLER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("seller");
+        userDTO.setPassword("secret");
+        userDTO.setRole(Role.SELLER);
         String json = objectMapper.writeValueAsString(userDTO);
 
         // When / Then
@@ -70,7 +84,10 @@ class UserControllerTest {
     @Test
     void login_ShouldReturnToken() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("john", "secret", Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("john");
+        userDTO.setPassword("secret");
+        userDTO.setRole(Role.USER);
         String json = objectMapper.writeValueAsString(userDTO);
         User user = User.builder().username("john").role(Role.USER).build();
         String expectedToken = "jwt.token";
@@ -112,10 +129,52 @@ class UserControllerTest {
     }
 
     @Test
+    void profile_ShouldReturnProfile() throws Exception {
+        String token = "Bearer t";
+        UserProfileDTO dto = new UserProfileDTO();
+        dto.setUsername("john");
+        dto.setFullName("John Doe");
+        dto.setEmail("john@example.com");
+        dto.setPhone("+79990001122");
+        dto.setRole(Role.USER);
+        when(userService.getProfile(token)).thenReturn(dto);
+
+        mockMvc.perform(get("/api/user/profile").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("john"))
+                .andExpect(jsonPath("$.fullName").value("John Doe"))
+                .andExpect(jsonPath("$.email").value("john@example.com"))
+                .andExpect(jsonPath("$.phone").value("+79990001122"))
+                .andExpect(jsonPath("$.role").value("USER"));
+
+        verify(userService).getProfile(token);
+    }
+
+    @Test
+    void updateProfile_ShouldCallService() throws Exception {
+        String token = "Bearer t";
+        UpdateProfileRequest req = new UpdateProfileRequest();
+        req.setFullName("New Name");
+        req.setEmail("new@mail.ru");
+        req.setPhone("+7888");
+
+        mockMvc.perform(put("/api/user/profile")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk());
+
+        verify(userService).updateProfile(eq(token), refEq(req));
+    }
+
+    @Test
     void loadUserByUsername_ShouldReturnUserDTO() throws Exception {
         // Given
         String username = "john";
-        UserDTO userDTO = new UserDTO("john", "encoded", Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("john");
+        userDTO.setPassword("encoded");
+        userDTO.setRole(Role.USER);
         when(userService.findByUsername(username)).thenReturn(userDTO);
 
         // When / Then

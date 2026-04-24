@@ -27,4 +27,10 @@ public class Product {
     private Float rating;
 
     private Long sellerId;
+
+    /** Цена в рублях */
+    private Double price;
+
+    /** URL или относительный путь к изображению */
+    private String imageUrl;
 }

@@ -50,7 +50,11 @@ class ControllerTest {
     @Test
     void register_shouldReturnOk() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("testUser", "password", Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("testUser");
+        userDTO.setPassword("password");
+        userDTO.setRole(Role.USER);
+        userDTO.setFullName("Тест");
         doNothing().when(userClient).createUser(any(UserDTO.class));
 
         // When & Then
@@ -60,13 +64,17 @@ class ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("регистация прошла успешно"));
 
-        verify(userClient, times(1)).createUser(userDTO);
+        verify(userClient, times(1)).createUser(argThat(d -> "testUser".equals(d.getUsername())));
     }
 
     @Test
     void registerSeller_shouldReturnOk() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("seller", "pass", Role.SELLER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("seller");
+        userDTO.setPassword("pass");
+        userDTO.setRole(Role.SELLER);
+        userDTO.setFullName("Продавец");
         doNothing().when(userClient).createSeller(any(UserDTO.class));
 
         // When & Then
@@ -76,24 +84,30 @@ class ControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("регистация прошла успешно"));
 
-        verify(userClient, times(1)).createSeller(userDTO);
+        verify(userClient, times(1)).createSeller(argThat(d -> "seller".equals(d.getUsername())));
     }
 
     @Test
     void login_shouldReturnToken() throws Exception {
         // Given
-        UserDTO userDTO = new UserDTO("user", "pass", Role.USER);
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("user");
+        userDTO.setPassword("pass");
+        userDTO.setRole(Role.USER);
         String token = "jwt-token";
         when(userClient.login(any(UserDTO.class))).thenReturn(token);
+        when(userClient.getRole("Bearer " + token)).thenReturn(Role.USER);
 
         // When & Then
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(token));
+                .andExpect(jsonPath("$.token").value(token))
+                .andExpect(jsonPath("$.role").value("USER"));
 
-        verify(userClient, times(1)).login(userDTO);
+        verify(userClient, times(1)).login(argThat(d -> "user".equals(d.getUsername())));
+        verify(userClient, times(1)).getRole("Bearer " + token);
     }
 
     @Test
@@ -166,6 +180,30 @@ class ControllerTest {
         mockMvc.perform(get("/display/cast").header("Authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(cart)));
+    }
+
+    @Test
+    void mySellerProducts_shouldReturnOnlyOwnProducts() throws Exception {
+        String token = "Bearer jwt-token";
+        ProductDTO mine = new ProductDTO();
+        mine.setId(1L);
+        mine.setName("Mine");
+        mine.setSellerId(10L);
+        ProductDTO other = new ProductDTO();
+        other.setId(2L);
+        other.setName("Other");
+        other.setSellerId(99L);
+        when(userClient.getRole(token)).thenReturn(Role.SELLER);
+        when(userClient.findUserId(token)).thenReturn(10L);
+        when(productClient.allProducts()).thenReturn(List.of(mine, other));
+
+        mockMvc.perform(get("/seller/my_products").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(List.of(mine))));
+
+        verify(userClient, times(1)).getRole(token);
+        verify(userClient, times(1)).findUserId(token);
+        verify(productClient, times(1)).allProducts();
     }
 
     @Test

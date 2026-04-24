@@ -4,7 +4,7 @@ import com.example.serviceforcart.entity.ProductDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
-@FeignClient(name = "product", url = "http://localhost:8081")
+@FeignClient(name = "product", url = "${app.feign.product.url:http://localhost:8081}")
 public interface ProductClient {
 
     @GetMapping("/api/product/find_product_by_name/{name}")
