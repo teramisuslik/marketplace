@@ -59,6 +59,12 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up
 
 Если IDEA не видит Application класс в каком-то сервисе — смотри раздел **IntelliJ** в конце (про подключение pom-ов).
 
+## Githooks
+Для работы хуков в терминале необходимо прописать команду: 
+```bash
+git config core.hooksPath .githooks
+```
+
 ## Swagger
 
 Подключён springdoc, UI открывается так:
