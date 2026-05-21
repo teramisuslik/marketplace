@@ -245,7 +245,6 @@ public class AssistantService {
         return payloadMentioned.stream().filter(byId::containsKey).collect(Collectors.toList());
     }
 
-
     static List<Long> extractProductIdsFromBoldCatalogNames(String userMessage, Map<Long, ProductDTO> byId) {
         if (!StringUtils.hasText(userMessage) || byId.isEmpty()) {
             return List.of();

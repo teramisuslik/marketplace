@@ -93,18 +93,16 @@ public class UserController {
     }
 
     @DeleteMapping("/addresses/{id}")
-    public void deleteAddress(
-            @RequestHeader("Authorization") String authorization, @PathVariable("id") Long id) {
+    public void deleteAddress(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id) {
         addressService.delete(authorization, id);
     }
 
     @PostMapping("/payments/pending")
     public Long createPendingPayment(
-            @RequestHeader("Authorization") String authorization,
-            @RequestBody RecordCheckoutResponse checkoutResult) {
+            @RequestHeader("Authorization") String authorization, @RequestBody RecordCheckoutResponse checkoutResult) {
         Long buyerId = userService.getUserid(authorization);
-        Payment payment = paymentService.createPending(
-                buyerId, checkoutResult.getOrderIds(), checkoutResult.getTotalRub());
+        Payment payment =
+                paymentService.createPending(buyerId, checkoutResult.getOrderIds(), checkoutResult.getTotalRub());
         return payment.getId();
     }
 

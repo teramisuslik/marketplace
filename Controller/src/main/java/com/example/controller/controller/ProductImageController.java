@@ -75,7 +75,11 @@ public class ProductImageController {
                 || filename.contains("\\")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
         }
-        Path path = Path.of(uploadDir).toAbsolutePath().normalize().resolve("products").resolve(filename);
+        Path path = Path.of(uploadDir)
+                .toAbsolutePath()
+                .normalize()
+                .resolve("products")
+                .resolve(filename);
         if (!Files.isRegularFile(path)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
         }

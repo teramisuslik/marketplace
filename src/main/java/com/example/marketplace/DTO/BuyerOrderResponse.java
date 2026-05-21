@@ -15,6 +15,7 @@ public class BuyerOrderResponse {
     private double amount;
     /** placed | in_transit | delivered — для UI покупателя */
     private String status;
+
     private String sellerName;
     private List<BuyerOrderLineResponse> items;
 }

@@ -76,12 +76,10 @@ public class ShopOrderService {
     @Transactional
     public void markOrdersPaid(List<Long> orderIds) {
         for (Long orderId : orderIds) {
-            shopOrderRepository
-                    .findById(orderId)
-                    .ifPresent(order -> {
-                        order.setStatus(ShopOrderStatus.assembly);
-                        shopOrderRepository.save(order);
-                    });
+            shopOrderRepository.findById(orderId).ifPresent(order -> {
+                order.setStatus(ShopOrderStatus.assembly);
+                shopOrderRepository.save(order);
+            });
         }
     }
 

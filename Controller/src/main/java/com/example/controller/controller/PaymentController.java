@@ -1,6 +1,5 @@
 package com.example.controller.controller;
 
-import com.example.controller.DTO.CheckoutPaymentResponse;
 import com.example.controller.DTO.PaymentStatusResponse;
 import com.example.controller.service.GatewayPaymentService;
 import io.swagger.v3.oas.annotations.Operation;

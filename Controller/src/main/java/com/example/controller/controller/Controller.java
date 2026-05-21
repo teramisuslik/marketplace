@@ -1,28 +1,28 @@
 package com.example.controller.controller;
 
 import com.example.controller.DTO.BuyProductDTO;
+import com.example.controller.DTO.ChangePasswordRequest;
 import com.example.controller.DTO.CheckoutLineEnriched;
 import com.example.controller.DTO.CheckoutLineItem;
+import com.example.controller.DTO.CheckoutPaymentResponse;
 import com.example.controller.DTO.CheckoutRequest;
+import com.example.controller.DTO.CreateAddressRequest;
 import com.example.controller.DTO.ProductDTO;
 import com.example.controller.DTO.ProfileUpdateRequest;
 import com.example.controller.DTO.RecordCheckoutRequest;
+import com.example.controller.DTO.RecordCheckoutResponse;
 import com.example.controller.DTO.Role;
 import com.example.controller.DTO.SellerCheckoutGroup;
+import com.example.controller.DTO.UserAddressResponse;
 import com.example.controller.DTO.UserDTO;
 import com.example.controller.client.CartClient;
 import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
-import com.example.controller.response.Response;
 import com.example.controller.response.BuyerOrderResponse;
+import com.example.controller.response.Response;
 import com.example.controller.response.SellerOrderResponse;
 import com.example.controller.response.SellerStatsResponse;
 import com.example.controller.response.UserProfileResponse;
-import com.example.controller.DTO.ChangePasswordRequest;
-import com.example.controller.DTO.CheckoutPaymentResponse;
-import com.example.controller.DTO.CreateAddressRequest;
-import com.example.controller.DTO.RecordCheckoutResponse;
-import com.example.controller.DTO.UserAddressResponse;
 import com.example.controller.service.ControllerService;
 import com.example.controller.service.GatewayPaymentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -250,8 +250,7 @@ public class Controller {
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @GetMapping("/me/orders")
-    public List<BuyerOrderResponse> myOrders(
-            @Parameter(hidden = true) @RequestHeader("Authorization") String token) {
+    public List<BuyerOrderResponse> myOrders(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
         return userClient.listBuyerOrders(token);
     }
 

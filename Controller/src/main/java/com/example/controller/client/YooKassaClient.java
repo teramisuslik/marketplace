@@ -31,7 +31,8 @@ public class YooKassaClient {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE, "ЮKassa не настроена (shop-id / secret-key)");
         }
-        String amount = BigDecimal.valueOf(amountRub).setScale(2, RoundingMode.HALF_UP).toPlainString();
+        String amount =
+                BigDecimal.valueOf(amountRub).setScale(2, RoundingMode.HALF_UP).toPlainString();
         String returnUrl = properties.getReturnUrl();
         if (!returnUrl.contains("paymentId=")) {
             returnUrl = returnUrl + (returnUrl.contains("?") ? "&" : "?") + "paymentId=" + internalPaymentId;
@@ -65,7 +66,8 @@ public class YooKassaClient {
 
             JsonNode root = objectMapper.readTree(responseBody);
             String yookassaId = root.path("id").asText(null);
-            String confirmationUrl = root.path("confirmation").path("confirmation_url").asText(null);
+            String confirmationUrl =
+                    root.path("confirmation").path("confirmation_url").asText(null);
             if (yookassaId == null || confirmationUrl == null) {
                 throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Некорректный ответ ЮKassa");
             }
@@ -101,7 +103,8 @@ public class YooKassaClient {
         } catch (ResponseStatusException e) {
             throw e;
         } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Ошибка запроса статуса ЮKassa: " + e.getMessage());
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_GATEWAY, "Ошибка запроса статуса ЮKassa: " + e.getMessage());
         }
     }
 

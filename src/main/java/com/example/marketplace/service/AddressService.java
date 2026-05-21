@@ -31,7 +31,9 @@ public class AddressService {
         Long userId = userService.getUserid(authorization);
         validate(body);
         boolean makeDefault = Boolean.TRUE.equals(body.getIsDefault())
-                || addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId).isEmpty();
+                || addressRepository
+                        .findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+                        .isEmpty();
         if (makeDefault) {
             clearDefault(userId);
         }

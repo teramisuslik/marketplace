@@ -57,9 +57,7 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ProductDTO updateProduct(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long id,
-            @RequestBody ProductDTO productDTO) {
+            @RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody ProductDTO productDTO) {
         Role role = userClient.getRole(token);
         if (role != Role.SELLER) {
             throw new ForbiddenException("Only sellers can update products");

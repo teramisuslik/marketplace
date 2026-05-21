@@ -12,9 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Slf4j
@@ -100,7 +100,8 @@ public class UserService {
                 || body.getCurrentPassword().isBlank()
                 || body.getNewPassword() == null
                 || body.getNewPassword().length() < 6) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Укажите текущий и новый пароль (не короче 6 символов)");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Укажите текущий и новый пароль (не короче 6 символов)");
         }
         String token = authorization.substring(7);
         String username = jwtTockenUtils.getUsernameFromToken(token);
