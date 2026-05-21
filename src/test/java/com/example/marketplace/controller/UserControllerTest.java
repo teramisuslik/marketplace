@@ -13,6 +13,8 @@ import com.example.marketplace.config.SecurityConfig;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
+import com.example.marketplace.service.AddressService;
+import com.example.marketplace.service.PaymentService;
 import com.example.marketplace.service.ShopOrderService;
 import com.example.marketplace.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +42,12 @@ class UserControllerTest {
 
     @MockitoBean
     private JwtTockenUtils jwtTockenUtils;
+
+    @MockitoBean
+    private AddressService addressService;
+
+    @MockitoBean
+    private PaymentService paymentService;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -230,5 +238,84 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.revenueToday").value(1000.0))
                 .andExpect(jsonPath("$.ordersCountToday").value(5))
                 .andExpect(jsonPath("$.avgCheckToday").value(200.0));
+    }
+
+    @Test
+    void changePassword_shouldCallService() throws Exception {
+        String token = "Bearer t";
+        ChangePasswordRequest req = new ChangePasswordRequest();
+        req.setCurrentPassword("old");
+        req.setNewPassword("new123");
+        String json = objectMapper.writeValueAsString(req);
+
+        mockMvc.perform(put("/api/user/password")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+        verify(userService).changePassword(eq(token), any(ChangePasswordRequest.class));
+    }
+
+    @Test
+    void listAddresses_shouldReturnList() throws Exception {
+        String token = "Bearer t";
+        List<UserAddressDTO> addresses = List.of(new UserAddressDTO());
+        when(addressService.list(token)).thenReturn(addresses);
+
+        mockMvc.perform(get("/api/user/addresses").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+        verify(addressService).list(token);
+    }
+
+    @Test
+    void createAddress_shouldCallService() throws Exception {
+        String token = "Bearer t";
+        CreateAddressRequest req = new CreateAddressRequest();
+        req.setCity("Moscow");
+        UserAddressDTO response = new UserAddressDTO();
+        response.setId(10L);
+        when(addressService.create(eq(token), any(CreateAddressRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/api/user/addresses")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10));
+    }
+
+    @Test
+    void deleteAddress_shouldCallService() throws Exception {
+        String token = "Bearer t";
+        Long addressId = 5L;
+
+        mockMvc.perform(delete("/api/user/addresses/{id}", addressId).header("Authorization", token))
+                .andExpect(status().isOk());
+        verify(addressService).delete(token, addressId);
+    }
+
+    @Test
+    void paymentStatus_shouldReturnStatus() throws Exception {
+        String token = "Bearer t";
+        Long paymentId = 100L;
+        PaymentStatusDTO statusDto = new PaymentStatusDTO();
+        statusDto.setStatus("pending");
+        when(paymentService.getStatus(eq(token), eq(paymentId))).thenReturn(statusDto);
+
+        mockMvc.perform(get("/api/user/payments/{id}/status", paymentId).header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("pending"));
+    }
+
+    @Test
+    void buyerOrders_shouldReturnList() throws Exception {
+        String token = "Bearer t";
+        List<BuyerOrderResponse> orders = List.of(new BuyerOrderResponse());
+        when(shopOrderService.listBuyerOrders(token)).thenReturn(orders);
+
+        mockMvc.perform(get("/api/user/buyer/orders").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
     }
 }

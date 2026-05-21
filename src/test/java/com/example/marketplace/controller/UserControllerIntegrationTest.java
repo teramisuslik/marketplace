@@ -203,7 +203,7 @@ class UserControllerIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].buyerName").value("Display Buyer"))
                 .andExpect(jsonPath("$[0].totalRub").value(500.0))
-                .andExpect(jsonPath("$[0].status").value("assembly"));
+                .andExpect(jsonPath("$[0].status").value("awaiting_payment"));
     }
 
     @Test

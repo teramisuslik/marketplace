@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -82,14 +83,14 @@ class ShopOrderServiceTest {
                 .save(argThat(order -> order.getBuyerUserId().equals(buyerId)
                         && order.getSellerUserId().equals(sellerId1)
                         && order.getBuyerDisplayName().equals("Покупатель Петя")
-                        && order.getStatus() == ShopOrderStatus.assembly
+                        && order.getStatus() == ShopOrderStatus.awaiting_payment
                         && order.getTotalRub().equals(200.0)
                         && order.getLines().size() == 1
                         && order.getLines().get(0).getProductId().equals(1L)
                         && order.getLines().get(0).getLineTotalRub().equals(200.0)));
         verify(shopOrderRepository)
                 .save(argThat(order -> order.getSellerUserId().equals(sellerId2)
-                        && order.getStatus() == ShopOrderStatus.assembly
+                        && order.getStatus() == ShopOrderStatus.awaiting_payment
                         && order.getTotalRub().equals(150.0)));
     }
 
@@ -298,5 +299,19 @@ class ShopOrderServiceTest {
         assertThat(stats.getRevenueToday()).isEqualTo(0.0);
         assertThat(stats.getOrdersCountToday()).isEqualTo(0);
         assertThat(stats.getAvgCheckToday()).isEqualTo(0.0);
+    }
+
+    @Test
+    void markOrdersPaid_shouldUpdateOrderStatusToAssembly() {
+        Long orderId = 1L;
+        ShopOrder order = ShopOrder.builder()
+                .id(orderId)
+                .status(ShopOrderStatus.awaiting_payment)
+                .build();
+        when(shopOrderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        shopOrderService.markOrdersPaid(List.of(orderId));
+
+        verify(shopOrderRepository).save(argThat(o -> o.getStatus() == ShopOrderStatus.assembly));
     }
 }

@@ -10,7 +10,6 @@ spring:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
-
-jwt:
-  secret: testSecretKeyForJwtThatIsAtLeast32BytesLong
-  lifetime: 60
+  jwt:
+    secret: testSecretKeyForJwtThatIsAtLeast32BytesLong
+    lifetime: 60
