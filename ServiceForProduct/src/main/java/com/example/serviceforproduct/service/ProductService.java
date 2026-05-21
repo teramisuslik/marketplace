@@ -2,6 +2,7 @@ package com.example.serviceforproduct.service;
 
 import com.example.serviceforproduct.DTO.ProductDTO;
 import com.example.serviceforproduct.entity.Product;
+import com.example.serviceforproduct.exception.ForbiddenException;
 import com.example.serviceforproduct.exception.NotFoundException;
 import com.example.serviceforproduct.repository.ProductRepository;
 import java.util.ArrayList;
@@ -61,5 +62,25 @@ public class ProductService {
 
     public Product findByName(String name) {
         return productRepository.findByName(name).orElseThrow(() -> new NotFoundException("Product not found"));
+    }
+
+    public Product updateProduct(Long id, ProductDTO dto, Long sellerId) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new NotFoundException("Product not found"));
+        if (product.getSellerId() == null || !product.getSellerId().equals(sellerId)) {
+            throw new ForbiddenException("Можно редактировать только свои товары");
+        }
+        if (dto.getDescription() != null) {
+            product.setDescription(dto.getDescription());
+        }
+        if (dto.getPrice() != null) {
+            product.setPrice(dto.getPrice());
+        }
+        if (dto.getCountOfProduct() != null) {
+            product.setCountOfProduct(dto.getCountOfProduct());
+        }
+        if (dto.getImageUrl() != null) {
+            product.setImageUrl(dto.getImageUrl());
+        }
+        return productRepository.save(product);
     }
 }

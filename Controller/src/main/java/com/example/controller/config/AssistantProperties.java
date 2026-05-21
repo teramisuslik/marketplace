@@ -6,14 +6,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AssistantProperties {
 
     private String ollamaBaseUrl = "http://127.0.0.1:11434";
-    /** Имя модели в Ollama, например llama3.1:8b или qwen2.5:7b-instruct */
     private String model = "llama3.2:latest";
 
     private int maxCatalogItems = 500;
-    /**
-     * Если true, в Ollama уходит {@code response_format: json_object} (строгий JSON). У слабых моделей
-     * иногда лучше выключить и оставить false.
-     */
+
     private boolean responseFormatJsonObject = true;
 
     public String getOllamaBaseUrl() {

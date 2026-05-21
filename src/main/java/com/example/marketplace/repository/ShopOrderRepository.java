@@ -13,6 +13,9 @@ public interface ShopOrderRepository extends JpaRepository<ShopOrder, Long> {
     @EntityGraph(attributePaths = "lines")
     List<ShopOrder> findBySellerUserIdOrderByCreatedAtDesc(Long sellerUserId);
 
+    @EntityGraph(attributePaths = "lines")
+    List<ShopOrder> findByBuyerUserIdOrderByCreatedAtDesc(Long buyerUserId);
+
     @Query(
             "select coalesce(sum(o.totalRub), 0) from ShopOrder o where o.sellerUserId = :sid and o.createdAt >= :start and o.createdAt < :end")
     Double sumTotalRubForSellerBetween(

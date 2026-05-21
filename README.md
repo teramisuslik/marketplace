@@ -32,6 +32,8 @@
 
 Поднимается Kafka/Zookeeper/Ollama из [docker-compose.yml](docker-compose.yml) и Postgres со всеми Spring-сервисами + Vite из [docker-compose.dev.yml](docker-compose.dev.yml) (профиль `dev`).
 
+Перед первым запуском скопируйте секреты: `cp .env.example .env` и заполните `JWT_SECRET`, `YOOKASSA_*` (см. `.env.example`).
+
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up
 ```

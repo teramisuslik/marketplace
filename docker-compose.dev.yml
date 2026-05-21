@@ -1,25 +1,11 @@
-# Полный dev-стек: Postgres + все Spring-сервисы + Vite-фронт.
-# Инфраструктура (Kafka, Ollama) — из основного docker-compose.yml.
-#
-# Запуск из корня репозитория:
-#   docker compose -f docker-compose.yml -f docker-compose.dev.yml --profile dev up
-#
-# Java hot reload: в контейнере spring-boot:run + DevTools. После правок в .java
-# выполни на хосте сборку модуля (IDE или ./mvnw compile -pl …), чтобы обновился
-# target/classes — DevTools перезапустит приложение в контейнере.
-#
-# Фронт: Vite на хосте http://localhost:5174 (внутри контейнера порт 5173).
-# API с хоста: см. VITE_API_URL (контроллер проброшен на 28085 при конфликте с локальными :808x).
-
 services:
   postgres:
     profiles: ["dev"]
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
     ports:
-      # Host 5432 часто занят локальным Postgres — снаружи 5433, внутри сети по-прежнему postgres:5432
       - "5433:5432"
     volumes:
       - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/00-init-databases.sql:ro
@@ -42,6 +28,10 @@ services:
       - "28082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-devonlyjwtsecretmin32characterslong00}
+      JWT_LIFETIME_MINUTES: ${JWT_LIFETIME_MINUTES:-1440}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-postgres}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-postgres}
     depends_on:
       postgres:
         condition: service_healthy
@@ -114,12 +104,17 @@ services:
       - ./Controller:/workspace/Controller
       - ./checkstyle.xml:/workspace/checkstyle.xml:ro
       - maven_cache:/root/.m2
+      - marketplace_uploads:/workspace/uploads
     command: >-
       bash -lc "chmod +x mvnw && ./mvnw -DskipTests -Dspotless.check.skip=true -Dcheckstyle.skip=true spring-boot:run -Dspring-boot.run.profiles=docker"
     ports:
       - "28085:8085"
     environment:
       SPRING_PROFILES_ACTIVE: docker
+      JWT_SECRET: ${JWT_SECRET:-devonlyjwtsecretmin32characterslong00}
+      YOOKASSA_SHOP_ID: ${YOOKASSA_SHOP_ID:-}
+      YOOKASSA_SECRET_KEY: ${YOOKASSA_SECRET_KEY:-}
+      YOOKASSA_RETURN_URL: ${YOOKASSA_RETURN_URL:-http://localhost:5174/payment/return}
     depends_on:
       kafka:
         condition: service_healthy
@@ -138,7 +133,6 @@ services:
     working_dir: /app
     environment:
       HUSKY: "0"
-      # С хоста браузер ходит на проброшенный порт контроллера
       VITE_API_URL: "http://localhost:28085"
     volumes:
       - ./frontend_for_pius:/app
@@ -153,3 +147,4 @@ services:
 volumes:
   maven_cache:
   frontend_node_modules:
+  marketplace_uploads:

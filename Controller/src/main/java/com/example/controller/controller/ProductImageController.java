@@ -13,8 +13,14 @@ import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestPart;
@@ -58,6 +64,33 @@ public class ProductImageController {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to store file");
         }
         return Map.of("relativeUrl", "/api/files/products/" + storedName);
+    }
+
+    @GetMapping("/api/files/products/{filename}")
+    public ResponseEntity<Resource> serveProductImage(@PathVariable("filename") String filename) {
+        if (filename == null
+                || filename.isBlank()
+                || filename.contains("..")
+                || filename.contains("/")
+                || filename.contains("\\")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid filename");
+        }
+        Path path = Path.of(uploadDir).toAbsolutePath().normalize().resolve("products").resolve(filename);
+        if (!Files.isRegularFile(path)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Image not found");
+        }
+        String ext = extensionOf(filename);
+        MediaType mediaType =
+                switch (ext != null ? ext : "") {
+                    case "png" -> MediaType.IMAGE_PNG;
+                    case "gif" -> MediaType.IMAGE_GIF;
+                    case "webp" -> MediaType.parseMediaType("image/webp");
+                    default -> MediaType.IMAGE_JPEG;
+                };
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CACHE_CONTROL, "public, max-age=86400")
+                .contentType(mediaType)
+                .body(new FileSystemResource(path));
     }
 
     private static String extensionOf(String filename) {

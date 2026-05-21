@@ -9,7 +9,5 @@ public class UserDTO {
     private String username;
     private String password;
     private Role role;
-
-    /** Имя; передаётся в сервис пользователей при регистрации */
     private String fullName;
 }

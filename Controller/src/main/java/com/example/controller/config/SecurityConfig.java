@@ -28,13 +28,14 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/files/products/**")
+                        .requestMatchers("/api/files/**")
                         .permitAll()
                         .requestMatchers(
                                 "/login",
                                 "/register",
                                 "/register_seller",
                                 "/main/**",
+                                "/payments/webhook",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html")

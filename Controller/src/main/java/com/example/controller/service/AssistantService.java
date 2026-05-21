@@ -34,10 +34,8 @@ public class AssistantService {
 
     private static final int MAX_HISTORY_TURNS = 10;
 
-    /** Рекомендации: внутри **…** — в начале точное значение поля {@code name} из каталога. */
     private static final Pattern BOLD_CATALOG_SEGMENT = Pattern.compile("\\*\\*(.+?)\\*\\*", Pattern.DOTALL);
 
-    /** Устаревший формат `{id: 6}` — подстраховка, если модель всё ещё так пишет. */
     private static final Pattern LEGACY_LINE_ID =
             Pattern.compile("\\{id\\s*:\\s*(\\d+)\\s*}", Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 
@@ -247,10 +245,7 @@ public class AssistantService {
         return payloadMentioned.stream().filter(byId::containsKey).collect(Collectors.toList());
     }
 
-    /**
-     * Сопоставляет сегменты {@code **slug**} с полем {@code name} товара в каталоге (без показа id в
-     * тексте пользователю).
-     */
+
     static List<Long> extractProductIdsFromBoldCatalogNames(String userMessage, Map<Long, ProductDTO> byId) {
         if (!StringUtils.hasText(userMessage) || byId.isEmpty()) {
             return List.of();
@@ -277,7 +272,6 @@ public class AssistantService {
         return new ArrayList<>(new LinkedHashSet<>(out));
     }
 
-    /** Устаревший формат {@code {id: 6}} в тексте — порядок появления. */
     static List<Long> extractLegacyBraceIdsFromReply(String userMessage) {
         if (!StringUtils.hasText(userMessage)) {
             return List.of();

@@ -1,4 +1,6 @@
 spring:
+  jwt:
+    secret: ${JWT_SECRET:}
   kafka:
     bootstrap-servers: kafka:9092
 app:
@@ -11,5 +13,9 @@ app:
       url: http://product:8081
     cart:
       url: http://cart:8083
+yookassa:
+  shop-id: ${YOOKASSA_SHOP_ID:}
+  secret-key: ${YOOKASSA_SECRET_KEY:}
+  return-url: ${YOOKASSA_RETURN_URL:http://localhost:5174/payment/return}
 assistant:
   ollama-base-url: http://ollama:11434
