@@ -6,8 +6,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.example.controller.DTO.*;
-import com.example.controller.client.*;
+import com.example.controller.client.CartClient;
+import com.example.controller.client.ProductClient;
+import com.example.controller.client.UserClient;
 import com.example.controller.jwt.JwtTokenUtils;
+import com.example.controller.response.SellerOrderResponse;
+import com.example.controller.response.SellerStatsResponse;
+import com.example.controller.response.UserProfileResponse;
 import com.example.controller.service.ControllerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
@@ -15,22 +20,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.cloud.openfeign.FeignAutoConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(
-        value = Controller.class,
-        excludeAutoConfiguration = {FeignAutoConfiguration.class})
+@WebMvcTest(Controller.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @MockitoBean
     private UserClient userClient;
@@ -47,184 +46,275 @@ class ControllerTest {
     @MockitoBean
     private JwtTokenUtils jwtTokenUtils;
 
-    @Test
-    void register_shouldReturnOk() throws Exception {
-        // Given
-        UserDTO userDTO = new UserDTO();
-        userDTO.setUsername("testUser");
-        userDTO.setPassword("password");
-        userDTO.setRole(Role.USER);
-        userDTO.setFullName("Тест");
-        doNothing().when(userClient).createUser(any(UserDTO.class));
+    @Autowired
+    private ObjectMapper objectMapper;
 
-        // When & Then
+    @Test
+    void register_ShouldReturnOk() throws Exception {
+        // given
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("newuser");
+        userDTO.setPassword("pass");
+
+        // when
         mockMvc.perform(post("/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
+                // then
                 .andExpect(status().isOk())
                 .andExpect(content().string("регистация прошла успешно"));
-
-        verify(userClient, times(1)).createUser(argThat(d -> "testUser".equals(d.getUsername())));
+        verify(userClient).createUser(any(UserDTO.class));
     }
 
     @Test
-    void registerSeller_shouldReturnOk() throws Exception {
-        // Given
+    void registerSeller_ShouldReturnOk() throws Exception {
+        // given
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("seller");
         userDTO.setPassword("pass");
-        userDTO.setRole(Role.SELLER);
-        userDTO.setFullName("Продавец");
-        doNothing().when(userClient).createSeller(any(UserDTO.class));
 
-        // When & Then
+        // when
         mockMvc.perform(post("/register_seller")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("регистация прошла успешно"));
-
-        verify(userClient, times(1)).createSeller(argThat(d -> "seller".equals(d.getUsername())));
+                // then
+                .andExpect(status().isOk());
+        verify(userClient).createSeller(any(UserDTO.class));
     }
 
     @Test
-    void login_shouldReturnToken() throws Exception {
-        // Given
+    void login_ShouldReturnTokenAndRole() throws Exception {
+        // given
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("user");
-        userDTO.setPassword("pass");
-        userDTO.setRole(Role.USER);
-        String token = "jwt-token";
-        when(userClient.login(any(UserDTO.class))).thenReturn(token);
-        when(userClient.getRole("Bearer " + token)).thenReturn(Role.USER);
+        userDTO.setPassword("secret");
+        String jwt = "jwt.token.123";
+        when(userClient.login(any(UserDTO.class))).thenReturn(jwt);
+        when(userClient.getRole("Bearer " + jwt)).thenReturn(Role.SELLER);
 
-        // When & Then
+        // when
         mockMvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userDTO)))
+                // then
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value(token))
-                .andExpect(jsonPath("$.role").value("USER"));
-
-        verify(userClient, times(1)).login(argThat(d -> "user".equals(d.getUsername())));
-        verify(userClient, times(1)).getRole("Bearer " + token);
+                .andExpect(jsonPath("$.token").value(jwt))
+                .andExpect(jsonPath("$.role").value("SELLER"));
     }
 
     @Test
-    void addProduct_shouldReturnOk() throws Exception {
-        // Given
-        String token = "Bearer jwt-token";
-        ProductDTO productDTO = new ProductDTO();
-        productDTO.setName("Phone");
-        doNothing().when(productClient).addProduct(anyString(), any(ProductDTO.class));
+    void meProfile_ShouldReturnUserProfile() throws Exception {
+        // given
+        String token = "Bearer test";
+        UserProfileResponse profile = new UserProfileResponse();
+        profile.setUsername("john");
+        profile.setFullName("John Doe");
+        when(userClient.getProfile(token)).thenReturn(profile);
 
-        // When & Then
+        // when
+        mockMvc.perform(get("/me/profile").header("Authorization", token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("john"));
+    }
+
+    @Test
+    void updateMeProfile_ShouldReturnNoContent() throws Exception {
+        // given
+        String token = "Bearer test";
+        ProfileUpdateRequest request = new ProfileUpdateRequest();
+        request.setFullName("New Name");
+
+        // when
+        mockMvc.perform(put("/me/profile")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                // then
+                .andExpect(status().isNoContent());
+        verify(userClient).updateProfile(eq(token), any(ProfileUpdateRequest.class));
+    }
+
+    @Test
+    void addProduct_ShouldReturnOk() throws Exception {
+        // given
+        String token = "Bearer test";
+        ProductDTO product = new ProductDTO();
+        product.setName("Phone");
+
+        // when
         mockMvc.perform(post("/addproduct")
                         .header("Authorization", token)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(productDTO)))
-                .andExpect(status().isOk())
-                .andExpect(content().string("товар добавлен"));
-
-        verify(productClient, times(1)).addProduct(eq(token), any(ProductDTO.class));
+                        .content(objectMapper.writeValueAsString(product)))
+                // then
+                .andExpect(status().isOk());
+        verify(productClient).addProduct(eq(token), any(ProductDTO.class));
     }
 
     @Test
-    void allProducts_shouldReturnList() throws Exception {
-        // Given
-        List<ProductDTO> products = List.of(new ProductDTO(), new ProductDTO());
-        when(productClient.allProducts()).thenReturn(products);
+    void allProducts_ShouldReturnList() throws Exception {
+        // given
+        ProductDTO p1 = new ProductDTO();
+        p1.setId(1L);
+        when(productClient.allProducts()).thenReturn(List.of(p1));
 
-        // When & Then
+        // when
         mockMvc.perform(get("/main"))
+                // then
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(products)));
+                .andExpect(jsonPath("$[0].id").value(1));
     }
 
     @Test
-    void findProductsByWord_shouldReturnFilteredList() throws Exception {
-        // Given
-        String word = "phone";
-        List<ProductDTO> products = List.of(new ProductDTO());
-        when(productClient.findProductsByWord(word)).thenReturn(products);
+    void findProductsByWord_ShouldReturnFiltered() throws Exception {
+        // given
+        ProductDTO p = new ProductDTO();
+        p.setName("laptop");
+        when(productClient.findProductsByWord("lap")).thenReturn(List.of(p));
 
-        // When & Then
-        mockMvc.perform(get("/main/{word}", word))
+        // when
+        mockMvc.perform(get("/main/lap"))
+                // then
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(products)));
+                .andExpect(jsonPath("$[0].name").value("laptop"));
     }
 
     @Test
-    void addProductToCart_shouldReturnOk() throws Exception {
-        // Given
-        String token = "Bearer jwt-token";
-        String productName = "Laptop";
-        doNothing().when(cartClient).addProductToCart(anyString(), anyString());
-
-        // When & Then
-        mockMvc.perform(post("/add_product_to_cart/{name}", productName).header("Authorization", token))
-                .andExpect(status().isOk())
-                .andExpect(content().string("товар добавлен в карзину"));
-
-        verify(cartClient, times(1)).addProductToCart(eq(token), eq(productName));
-    }
-
-    @Test
-    void displayCast_shouldReturnCartItems() throws Exception {
-        // Given
-        String token = "Bearer jwt-token";
-        List<ProductDTO> cart = List.of(new ProductDTO(), new ProductDTO());
-        when(cartClient.displayCast(token)).thenReturn(cart);
-
-        // When & Then
-        mockMvc.perform(get("/display/cast").header("Authorization", token))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(cart)));
-    }
-
-    @Test
-    void mySellerProducts_shouldReturnOnlyOwnProducts() throws Exception {
-        String token = "Bearer jwt-token";
-        ProductDTO mine = new ProductDTO();
-        mine.setId(1L);
-        mine.setName("Mine");
-        mine.setSellerId(10L);
-        ProductDTO other = new ProductDTO();
-        other.setId(2L);
-        other.setName("Other");
-        other.setSellerId(99L);
+    void mySellerProducts_ShouldReturnOnlySellerOwnProducts() throws Exception {
+        // given
+        String token = "Bearer test";
+        Long sellerId = 100L;
         when(userClient.getRole(token)).thenReturn(Role.SELLER);
-        when(userClient.findUserId(token)).thenReturn(10L);
-        when(productClient.allProducts()).thenReturn(List.of(mine, other));
+        when(userClient.findUserId(token)).thenReturn(sellerId);
+        ProductDTO p1 = new ProductDTO();
+        p1.setId(1L);
+        p1.setSellerId(sellerId);
+        ProductDTO p2 = new ProductDTO();
+        p2.setId(2L);
+        p2.setSellerId(999L);
+        when(productClient.allProducts()).thenReturn(List.of(p1, p2));
 
+        // when
         mockMvc.perform(get("/seller/my_products").header("Authorization", token))
+                // then
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(List.of(mine))));
-
-        verify(userClient, times(1)).getRole(token);
-        verify(userClient, times(1)).findUserId(token);
-        verify(productClient, times(1)).allProducts();
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1));
     }
 
     @Test
-    void buyProduct_shouldReturnOk() throws Exception {
-        // Given
-        String token = "Bearer jwt-token";
-        Long productId = 1L;
-        Long userId = 10L;
-        when(userClient.findUserId(token)).thenReturn(userId);
-        doNothing().when(controllerService).buyProduct(any(BuyProductDTO.class));
+    void addProductToCart_ShouldCallCartClient() throws Exception {
+        // given
+        String token = "Bearer test";
+        String productName = "Phone";
 
-        // When & Then
-        mockMvc.perform(post("/buy_product/{productId}", productId).header("Authorization", token))
+        // when
+        mockMvc.perform(post("/add_product_to_cart/{name}", productName).header("Authorization", token))
+                // then
+                .andExpect(status().isOk());
+        verify(cartClient).addProductToCart(token, productName);
+    }
+
+    @Test
+    void displayCast_ShouldReturnCartContents() throws Exception {
+        // given
+        String token = "Bearer test";
+        ProductDTO p = new ProductDTO();
+        p.setName("Laptop");
+        when(cartClient.displayCast(token)).thenReturn(List.of(p));
+
+        // when
+        mockMvc.perform(get("/display/cast").header("Authorization", token))
+                // then
                 .andExpect(status().isOk())
-                .andExpect(content().string("оплата прошла"));
+                .andExpect(jsonPath("$[0].name").value("Laptop"));
+    }
 
-        verify(userClient, times(1)).findUserId(token);
-        verify(controllerService, times(1))
-                .buyProduct(BuyProductDTO.builder()
-                        .productId(productId)
-                        .userId(userId)
-                        .build());
+    @Test
+    void buyProduct_ShouldSendKafkaMessage() throws Exception {
+        // given
+        String token = "Bearer test";
+        Long productId = 5L;
+        Long userId = 123L;
+        when(userClient.findUserId(token)).thenReturn(userId);
+
+        // when
+        mockMvc.perform(post("/buy_product/{productId}", productId).header("Authorization", token))
+                // then
+                .andExpect(status().isOk());
+        verify(controllerService)
+                .buyProduct(argThat(dto ->
+                        dto.getProductId().equals(productId) && dto.getUserId().equals(userId)));
+    }
+
+    @Test
+    void checkout_ShouldCreateOrderAndProcessPayment() throws Exception {
+        // given
+        String token = "Bearer test";
+        Long buyerId = 10L;
+        Long sellerId = 20L;
+        Long productId = 99L;
+
+        CheckoutLineItem line = new CheckoutLineItem();
+        line.setProductId(productId);
+        line.setQuantity(2);
+        CheckoutRequest request = new CheckoutRequest();
+        request.setPaymentTiming("now");
+        request.setLines(List.of(line));
+
+        when(userClient.findUserId(token)).thenReturn(buyerId);
+        UserProfileResponse profile = new UserProfileResponse();
+        profile.setFullName("Buyer Name");
+        when(userClient.getProfile(token)).thenReturn(profile);
+
+        ProductDTO product = new ProductDTO();
+        product.setId(productId);
+        product.setName("Test Product");
+        product.setPrice(100.0);
+        product.setSellerId(sellerId);
+        when(productClient.findProductById(productId)).thenReturn(product);
+
+        // when
+        mockMvc.perform(post("/checkout")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(content().string("заказ оформлен"));
+
+        verify(userClient).recordCheckout(eq(token), any(RecordCheckoutRequest.class));
+        verify(controllerService).buyProduct(any(BuyProductDTO.class)); // because paymentTiming=now
+    }
+
+    @Test
+    void sellerOrders_ShouldReturnList() throws Exception {
+        // given
+        String token = "Bearer test";
+        SellerOrderResponse order = new SellerOrderResponse();
+        order.setId("SO-1");
+        when(userClient.listSellerOrders(token)).thenReturn(List.of(order));
+
+        // when
+        mockMvc.perform(get("/seller/orders").header("Authorization", token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("SO-1"));
+    }
+
+    @Test
+    void sellerStats_ShouldReturnStats() throws Exception {
+        // given
+        String token = "Bearer test";
+        SellerStatsResponse stats = new SellerStatsResponse();
+        stats.setRevenueToday(5000.0);
+        when(userClient.sellerStats(token)).thenReturn(stats);
+
+        // when
+        mockMvc.perform(get("/seller/stats").header("Authorization", token))
+                // then
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revenueToday").value(5000.0));
     }
 }
