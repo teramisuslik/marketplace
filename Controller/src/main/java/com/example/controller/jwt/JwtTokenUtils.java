@@ -20,7 +20,7 @@ public class JwtTokenUtils {
         this.secret = secret;
     }
 
-    private Key getSigningKey() {
+    public Key getSigningKey() {
         byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }

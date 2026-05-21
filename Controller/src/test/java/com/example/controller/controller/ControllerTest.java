@@ -8,7 +8,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.example.controller.DTO.*;
 import com.example.controller.client.*;
 import com.example.controller.jwt.JwtTokenUtils;
+import com.example.controller.response.BuyerOrderResponse;
+import com.example.controller.response.UserProfileResponse;
 import com.example.controller.service.ControllerService;
+import com.example.controller.service.GatewayPaymentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -46,6 +49,9 @@ class ControllerTest {
 
     @MockitoBean
     private JwtTokenUtils jwtTokenUtils;
+
+    @MockitoBean
+    private GatewayPaymentService gatewayPaymentService;
 
     @Test
     void register_shouldReturnOk() throws Exception {
@@ -226,5 +232,149 @@ class ControllerTest {
                         .productId(productId)
                         .userId(userId)
                         .build());
+    }
+
+    @Test
+    void changeMePassword_shouldReturnNoContent() throws Exception {
+        String token = "Bearer test";
+        ChangePasswordRequest request = new ChangePasswordRequest();
+        request.setCurrentPassword("old");
+        request.setNewPassword("new");
+
+        mockMvc.perform(put("/me/password")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+        verify(userClient).changePassword(eq(token), any(ChangePasswordRequest.class));
+    }
+
+    @Test
+    void updateSellerProduct_shouldReturnUpdatedProduct() throws Exception {
+        String token = "Bearer test";
+        Long productId = 10L;
+        ProductDTO product = new ProductDTO();
+        product.setName("Updated");
+        when(userClient.getRole(token)).thenReturn(Role.SELLER);
+        when(productClient.updateProduct(eq(token), eq(productId), any(ProductDTO.class)))
+                .thenReturn(product);
+
+        mockMvc.perform(put("/seller/product/{id}", productId)
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated"));
+    }
+
+    @Test
+    void updateSellerProduct_shouldReturnForbidden_whenNotSeller() throws Exception {
+        String token = "Bearer test";
+        when(userClient.getRole(token)).thenReturn(Role.USER);
+        ProductDTO product = new ProductDTO();
+
+        mockMvc.perform(put("/seller/product/{id}", 1L)
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(product)))
+                .andExpect(status().isForbidden());
+        verify(productClient, never()).updateProduct(any(), any(), any());
+    }
+
+    @Test
+    void listAddresses_shouldReturnList() throws Exception {
+        String token = "Bearer test";
+        UserAddressResponse address = new UserAddressResponse();
+        address.setId(1L);
+        when(userClient.listAddresses(token)).thenReturn(List.of(address));
+
+        mockMvc.perform(get("/me/addresses").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(1));
+    }
+
+    @Test
+    void createAddress_shouldReturnCreated() throws Exception {
+        String token = "Bearer test";
+        CreateAddressRequest request = new CreateAddressRequest();
+        request.setCity("Moscow");
+        UserAddressResponse response = new UserAddressResponse();
+        response.setId(5L);
+        when(userClient.createAddress(eq(token), any(CreateAddressRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(post("/me/addresses")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(5));
+    }
+
+    @Test
+    void deleteAddress_shouldReturnNoContent() throws Exception {
+        String token = "Bearer test";
+        Long addressId = 3L;
+
+        mockMvc.perform(delete("/me/addresses/{id}", addressId).header("Authorization", token))
+                .andExpect(status().isNoContent());
+        verify(userClient).deleteAddress(token, addressId);
+    }
+
+    @Test
+    void myOrders_shouldReturnList() throws Exception {
+        String token = "Bearer test";
+        BuyerOrderResponse order = new BuyerOrderResponse();
+        order.setId("SO-1");
+        when(userClient.listBuyerOrders(token)).thenReturn(List.of(order));
+
+        mockMvc.perform(get("/me/orders").header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("SO-1"));
+    }
+
+    @Test
+    void checkout_withOnlinePayment_shouldReturnPaymentResponse() throws Exception {
+        String token = "Bearer test";
+        Long buyerId = 10L;
+        Long sellerId = 20L;
+        Long productId = 99L;
+
+        CheckoutLineItem line = new CheckoutLineItem();
+        line.setProductId(productId);
+        line.setQuantity(2);
+        CheckoutRequest request = new CheckoutRequest();
+        request.setPaymentTiming("now");
+        request.setLines(List.of(line));
+
+        when(userClient.findUserId(token)).thenReturn(buyerId);
+        UserProfileResponse profile = new UserProfileResponse();
+        profile.setFullName("Buyer Name");
+        when(userClient.getProfile(token)).thenReturn(profile);
+
+        ProductDTO product = new ProductDTO();
+        product.setId(productId);
+        product.setName("Test Product");
+        product.setPrice(100.0);
+        product.setSellerId(sellerId);
+        when(productClient.findProductById(productId)).thenReturn(product);
+
+        RecordCheckoutResponse recorded = new RecordCheckoutResponse();
+        recorded.setTotalRub(200.0);
+        when(userClient.recordCheckout(eq(token), any(RecordCheckoutRequest.class)))
+                .thenReturn(recorded);
+
+        CheckoutPaymentResponse paymentResponse = new CheckoutPaymentResponse();
+        paymentResponse.setConfirmationUrl("https://yookassa.ru/confirm");
+        paymentResponse.setPaymentId(777L);
+        when(gatewayPaymentService.startOnlinePayment(eq(token), any(RecordCheckoutResponse.class)))
+                .thenReturn(paymentResponse);
+
+        mockMvc.perform(post("/checkout")
+                        .header("Authorization", token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.confirmationUrl").value("https://yookassa.ru/confirm"));
     }
 }
