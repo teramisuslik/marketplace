@@ -8,9 +8,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.example.marketplace.DTO.UpdateProfileRequest;
-import com.example.marketplace.DTO.UserDTO;
-import com.example.marketplace.DTO.UserProfileDTO;
+import com.example.marketplace.DTO.*;
 import com.example.marketplace.config.SecurityConfig;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
@@ -18,6 +16,7 @@ import com.example.marketplace.jwt.JwtTockenUtils;
 import com.example.marketplace.service.ShopOrderService;
 import com.example.marketplace.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -183,5 +182,53 @@ class UserControllerTest {
                 .andExpect(jsonPath("$.username").value("john"))
                 .andExpect(jsonPath("$.password").value("encoded"))
                 .andExpect(jsonPath("$.role").value("USER"));
+    }
+
+    @Test
+    void recordCheckout_ShouldCallShopOrderService() throws Exception {
+        // given
+        String auth = "Bearer token";
+        RecordCheckoutRequest request = new RecordCheckoutRequest();
+        request.setBuyerUserId(1L);
+        request.setSellerGroups(List.of(new SellerCheckoutGroup()));
+        String json = objectMapper.writeValueAsString(request);
+
+        // when
+        mockMvc.perform(post("/api/user/checkout/record")
+                        .header("Authorization", auth)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+
+        // then
+        verify(shopOrderService).recordCheckout(eq(auth), any(RecordCheckoutRequest.class));
+    }
+
+    @Test
+    void sellerOrders_ShouldReturnList() throws Exception {
+        // given
+        String auth = "Bearer token";
+        List<SellerOrderResponse> orders = List.of(new SellerOrderResponse());
+        when(shopOrderService.listSellerOrders(auth)).thenReturn(orders);
+
+        // when
+        mockMvc.perform(get("/api/user/seller/orders").header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void sellerStats_ShouldReturnStats() throws Exception {
+        // given
+        String auth = "Bearer token";
+        SellerStatsResponse stats = new SellerStatsResponse(1000.0, 5, 200.0);
+        when(shopOrderService.sellerStats(auth)).thenReturn(stats);
+
+        // when
+        mockMvc.perform(get("/api/user/seller/stats").header("Authorization", auth))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revenueToday").value(1000.0))
+                .andExpect(jsonPath("$.ordersCountToday").value(5))
+                .andExpect(jsonPath("$.avgCheckToday").value(200.0));
     }
 }

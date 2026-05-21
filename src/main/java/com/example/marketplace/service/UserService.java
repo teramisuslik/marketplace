@@ -1,5 +1,6 @@
 package com.example.marketplace.service;
 
+import com.example.marketplace.DTO.ChangePasswordRequest;
 import com.example.marketplace.DTO.UpdateProfileRequest;
 import com.example.marketplace.DTO.UserDTO;
 import com.example.marketplace.DTO.UserProfileDTO;
@@ -9,9 +10,11 @@ import com.example.marketplace.jwt.JwtTockenUtils;
 import com.example.marketplace.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @Slf4j
@@ -89,6 +92,27 @@ public class UserService {
                 .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
         return new UserProfileDTO(
                 user.getUsername(), user.getFullName(), user.getEmail(), user.getPhone(), user.getRole());
+    }
+
+    public void changePassword(String authorization, ChangePasswordRequest body) {
+        if (body == null
+                || body.getCurrentPassword() == null
+                || body.getCurrentPassword().isBlank()
+                || body.getNewPassword() == null
+                || body.getNewPassword().length() < 6) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Укажите текущий и новый пароль (не короче 6 символов)");
+        }
+        String token = authorization.substring(7);
+        String username = jwtTockenUtils.getUsernameFromToken(token);
+        User user = userRepository
+                .findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Invalid username"));
+        if (!passwordEncoder.matches(body.getCurrentPassword(), user.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Неверный текущий пароль");
+        }
+        user.setPassword(passwordEncoder.encode(body.getNewPassword()));
+        userRepository.save(user);
     }
 
     public void updateProfile(String authorization, UpdateProfileRequest body) {

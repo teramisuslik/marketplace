@@ -4,6 +4,7 @@ import com.example.controller.DTO.ProfileUpdateRequest;
 import com.example.controller.DTO.RecordCheckoutRequest;
 import com.example.controller.DTO.Role;
 import com.example.controller.DTO.UserDTO;
+import com.example.controller.response.BuyerOrderResponse;
 import com.example.controller.response.SellerOrderResponse;
 import com.example.controller.response.SellerStatsResponse;
 import com.example.controller.response.UserProfileResponse;
@@ -38,8 +39,47 @@ public interface UserClient {
     @PutMapping("/api/user/profile")
     void updateProfile(@RequestHeader("Authorization") String authorization, @RequestBody ProfileUpdateRequest body);
 
+    @PutMapping("/api/user/password")
+    void changePassword(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody com.example.controller.DTO.ChangePasswordRequest body);
+
     @PostMapping("/api/user/checkout/record")
-    void recordCheckout(@RequestHeader("Authorization") String authorization, @RequestBody RecordCheckoutRequest body);
+    com.example.controller.DTO.RecordCheckoutResponse recordCheckout(
+            @RequestHeader("Authorization") String authorization, @RequestBody RecordCheckoutRequest body);
+
+    @GetMapping("/api/user/addresses")
+    java.util.List<com.example.controller.DTO.UserAddressResponse> listAddresses(
+            @RequestHeader("Authorization") String authorization);
+
+    @PostMapping("/api/user/addresses")
+    com.example.controller.DTO.UserAddressResponse createAddress(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody com.example.controller.DTO.CreateAddressRequest body);
+
+    @DeleteMapping("/api/user/addresses/{id}")
+    void deleteAddress(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id);
+
+    @PostMapping("/api/user/payments/pending")
+    Long createPendingPayment(
+            @RequestHeader("Authorization") String authorization,
+            @RequestBody com.example.controller.DTO.RecordCheckoutResponse checkoutResult);
+
+    @PostMapping("/api/user/payments/attach-yookassa")
+    void attachYookassa(@RequestBody com.example.controller.DTO.AttachYookassaPaymentRequest body);
+
+    @PostMapping("/api/user/payments/webhook-succeeded")
+    void webhookPaymentSucceeded(@RequestParam("yookassaPaymentId") String yookassaPaymentId);
+
+    @PostMapping("/api/user/payments/webhook-canceled")
+    void webhookPaymentCanceled(@RequestParam("yookassaPaymentId") String yookassaPaymentId);
+
+    @GetMapping("/api/user/payments/{id}/status")
+    com.example.controller.DTO.PaymentStatusResponse getPaymentStatus(
+            @RequestHeader("Authorization") String authorization, @PathVariable("id") Long id);
+
+    @GetMapping("/api/user/buyer/orders")
+    List<BuyerOrderResponse> listBuyerOrders(@RequestHeader("Authorization") String authorization);
 
     @GetMapping("/api/user/seller/orders")
     List<SellerOrderResponse> listSellerOrders(@RequestHeader("Authorization") String authorization);

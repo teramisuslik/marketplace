@@ -55,12 +55,28 @@ public class ProductController {
         return productService.findByName(name).getId();
     }
 
+    @PutMapping("/{id}")
+    public ProductDTO updateProduct(
+            @RequestHeader("Authorization") String token, @PathVariable Long id, @RequestBody ProductDTO productDTO) {
+        Role role = userClient.getRole(token);
+        if (role != Role.SELLER) {
+            throw new ForbiddenException("Only sellers can update products");
+        }
+        Long sellerId = userClient.getUserId(token);
+        Product updated = productService.updateProduct(id, productDTO, sellerId);
+        return toDto(updated);
+    }
+
     @GetMapping("/find_all_by_id")
     public ProductDTO findProductById(@RequestParam Long id) {
         Product product = productService.findById(id);
         if (product == null) {
             throw new NotFoundException("Product not found with id: " + id);
         }
+        return toDto(product);
+    }
+
+    private static ProductDTO toDto(Product product) {
         ProductDTO productDTO = new ProductDTO();
         productDTO.setId(product.getId());
         productDTO.setName(product.getName());

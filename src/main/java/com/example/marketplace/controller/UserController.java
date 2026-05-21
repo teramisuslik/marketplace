@@ -1,14 +1,12 @@
 package com.example.marketplace.controller;
 
-import com.example.marketplace.DTO.RecordCheckoutRequest;
-import com.example.marketplace.DTO.SellerOrderResponse;
-import com.example.marketplace.DTO.SellerStatsResponse;
-import com.example.marketplace.DTO.UpdateProfileRequest;
-import com.example.marketplace.DTO.UserDTO;
-import com.example.marketplace.DTO.UserProfileDTO;
+import com.example.marketplace.DTO.*;
+import com.example.marketplace.entity.Payment;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
+import com.example.marketplace.service.AddressService;
+import com.example.marketplace.service.PaymentService;
 import com.example.marketplace.service.ShopOrderService;
 import com.example.marketplace.service.UserService;
 import java.util.List;
@@ -24,6 +22,8 @@ public class UserController {
 
     private final UserService userService;
     private final ShopOrderService shopOrderService;
+    private final AddressService addressService;
+    private final PaymentService paymentService;
     private final JwtTockenUtils jwtTockenUtils;
 
     @PostMapping("/register")
@@ -69,10 +69,67 @@ public class UserController {
         userService.updateProfile(authorization, body);
     }
 
+    @PutMapping("/password")
+    public void changePassword(
+            @RequestHeader("Authorization") String authorization, @RequestBody ChangePasswordRequest body) {
+        userService.changePassword(authorization, body);
+    }
+
     @PostMapping("/checkout/record")
-    public void recordCheckout(
+    public RecordCheckoutResponse recordCheckout(
             @RequestHeader("Authorization") String authorization, @RequestBody RecordCheckoutRequest body) {
-        shopOrderService.recordCheckout(authorization, body);
+        return shopOrderService.recordCheckout(authorization, body);
+    }
+
+    @GetMapping("/addresses")
+    public List<UserAddressDTO> listAddresses(@RequestHeader("Authorization") String authorization) {
+        return addressService.list(authorization);
+    }
+
+    @PostMapping("/addresses")
+    public UserAddressDTO createAddress(
+            @RequestHeader("Authorization") String authorization, @RequestBody CreateAddressRequest body) {
+        return addressService.create(authorization, body);
+    }
+
+    @DeleteMapping("/addresses/{id}")
+    public void deleteAddress(@RequestHeader("Authorization") String authorization, @PathVariable("id") Long id) {
+        addressService.delete(authorization, id);
+    }
+
+    @PostMapping("/payments/pending")
+    public Long createPendingPayment(
+            @RequestHeader("Authorization") String authorization, @RequestBody RecordCheckoutResponse checkoutResult) {
+        Long buyerId = userService.getUserid(authorization);
+        Payment payment =
+                paymentService.createPending(buyerId, checkoutResult.getOrderIds(), checkoutResult.getTotalRub());
+        return payment.getId();
+    }
+
+    @PostMapping("/payments/attach-yookassa")
+    public void attachYookassa(@RequestBody AttachYookassaPaymentRequest body) {
+        paymentService.attachYookassaId(body);
+    }
+
+    @PostMapping("/payments/webhook-succeeded")
+    public void webhookSucceeded(@RequestParam("yookassaPaymentId") String yookassaPaymentId) {
+        paymentService.markSucceededByYookassaId(yookassaPaymentId);
+    }
+
+    @PostMapping("/payments/webhook-canceled")
+    public void webhookCanceled(@RequestParam("yookassaPaymentId") String yookassaPaymentId) {
+        paymentService.markCanceledByYookassaId(yookassaPaymentId);
+    }
+
+    @GetMapping("/payments/{id}/status")
+    public PaymentStatusDTO paymentStatus(
+            @RequestHeader("Authorization") String authorization, @PathVariable("id") Long id) {
+        return paymentService.getStatus(authorization, id);
+    }
+
+    @GetMapping("/buyer/orders")
+    public List<BuyerOrderResponse> buyerOrders(@RequestHeader("Authorization") String authorization) {
+        return shopOrderService.listBuyerOrders(authorization);
     }
 
     @GetMapping("/seller/orders")

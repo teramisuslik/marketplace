@@ -19,4 +19,10 @@ public interface ProductClient {
 
     @GetMapping("/api/product/find_all_by_id")
     ProductDTO findProductById(@RequestParam("id") Long id);
+
+    @PutMapping("/api/product/{id}")
+    ProductDTO updateProduct(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("id") Long id,
+            @RequestBody ProductDTO productDTO);
 }

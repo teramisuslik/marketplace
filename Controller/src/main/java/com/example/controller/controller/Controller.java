@@ -1,23 +1,30 @@
 package com.example.controller.controller;
 
 import com.example.controller.DTO.BuyProductDTO;
+import com.example.controller.DTO.ChangePasswordRequest;
 import com.example.controller.DTO.CheckoutLineEnriched;
 import com.example.controller.DTO.CheckoutLineItem;
+import com.example.controller.DTO.CheckoutPaymentResponse;
 import com.example.controller.DTO.CheckoutRequest;
+import com.example.controller.DTO.CreateAddressRequest;
 import com.example.controller.DTO.ProductDTO;
 import com.example.controller.DTO.ProfileUpdateRequest;
 import com.example.controller.DTO.RecordCheckoutRequest;
+import com.example.controller.DTO.RecordCheckoutResponse;
 import com.example.controller.DTO.Role;
 import com.example.controller.DTO.SellerCheckoutGroup;
+import com.example.controller.DTO.UserAddressResponse;
 import com.example.controller.DTO.UserDTO;
 import com.example.controller.client.CartClient;
 import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
+import com.example.controller.response.BuyerOrderResponse;
 import com.example.controller.response.Response;
 import com.example.controller.response.SellerOrderResponse;
 import com.example.controller.response.SellerStatsResponse;
 import com.example.controller.response.UserProfileResponse;
 import com.example.controller.service.ControllerService;
+import com.example.controller.service.GatewayPaymentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,6 +49,7 @@ public class Controller {
     private final ProductClient productClient;
     private final CartClient cartClient;
     private final ControllerService controllerService;
+    private final GatewayPaymentService gatewayPaymentService;
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody UserDTO userDTO) {
@@ -73,6 +81,14 @@ public class Controller {
     public ResponseEntity<Void> updateMeProfile(
             @RequestHeader("Authorization") String token, @RequestBody ProfileUpdateRequest body) {
         userClient.updateProfile(token, body);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changeMePassword(
+            @RequestHeader("Authorization") String token, @RequestBody ChangePasswordRequest body) {
+        userClient.changePassword(token, body);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
@@ -111,6 +127,18 @@ public class Controller {
     }
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @PutMapping("/seller/product/{id}")
+    public ProductDTO updateSellerProduct(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @PathVariable("id") Long id,
+            @RequestBody ProductDTO productDTO) {
+        if (userClient.getRole(token) != Role.SELLER) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Только для продавца");
+        }
+        return productClient.updateProduct(token, id, productDTO);
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/add_product_to_cart/{name}")
     public ResponseEntity<String> addProductToCart(
             @Parameter(hidden = true) @RequestHeader("Authorization") String token, @PathVariable String name) {
@@ -138,8 +166,31 @@ public class Controller {
     }
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @GetMapping("/me/addresses")
+    public List<UserAddressResponse> listAddresses(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token) {
+        return userClient.listAddresses(token);
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @PostMapping("/me/addresses")
+    public UserAddressResponse createAddress(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token,
+            @RequestBody CreateAddressRequest body) {
+        return userClient.createAddress(token, body);
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @DeleteMapping("/me/addresses/{id}")
+    public ResponseEntity<Void> deleteAddress(
+            @Parameter(hidden = true) @RequestHeader("Authorization") String token, @PathVariable("id") Long id) {
+        userClient.deleteAddress(token, id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
     @PostMapping("/checkout")
-    public ResponseEntity<String> checkout(
+    public ResponseEntity<?> checkout(
             @Parameter(hidden = true) @RequestHeader("Authorization") String token,
             @RequestBody CheckoutRequest request) {
         if (request.getLines() == null || request.getLines().isEmpty()) {
@@ -180,16 +231,27 @@ public class Controller {
         record.setBuyerDisplayName(display);
         record.setPaymentTiming(request.getPaymentTiming() != null ? request.getPaymentTiming() : "on_delivery");
         record.setSellerGroups(groups);
-        userClient.recordCheckout(token, record);
+        RecordCheckoutResponse recorded = userClient.recordCheckout(token, record);
         if ("now".equalsIgnoreCase(record.getPaymentTiming())) {
-            for (CheckoutLineItem raw : request.getLines()) {
-                controllerService.buyProduct(BuyProductDTO.builder()
-                        .productId(raw.getProductId())
-                        .userId(buyerId)
-                        .build());
+            try {
+                CheckoutPaymentResponse payment = gatewayPaymentService.startOnlinePayment(token, recorded);
+                payment.setMessage("Перенаправление на оплату");
+                return ResponseEntity.ok(payment);
+            } catch (ResponseStatusException ex) {
+                throw ex;
+            } catch (Exception ex) {
+                log.warn("Online payment failed: {}", ex.getMessage());
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_GATEWAY, "Не удалось создать платёж: " + ex.getMessage());
             }
         }
         return ResponseEntity.ok("заказ оформлен");
+    }
+
+    @Operation(security = @SecurityRequirement(name = "bearer-jwt"))
+    @GetMapping("/me/orders")
+    public List<BuyerOrderResponse> myOrders(@Parameter(hidden = true) @RequestHeader("Authorization") String token) {
+        return userClient.listBuyerOrders(token);
     }
 
     @Operation(security = @SecurityRequirement(name = "bearer-jwt"))

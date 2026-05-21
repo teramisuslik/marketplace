@@ -5,7 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.example.marketplace.DTO.UpdateProfileRequest;
 import com.example.marketplace.DTO.UserDTO;
+import com.example.marketplace.DTO.UserProfileDTO;
 import com.example.marketplace.entity.Role;
 import com.example.marketplace.entity.User;
 import com.example.marketplace.jwt.JwtTockenUtils;
@@ -193,5 +195,72 @@ class UserServiceTest {
         assertThatThrownBy(() -> userService.findByUsername("unknown"))
                 .isInstanceOf(UsernameNotFoundException.class)
                 .hasMessageContaining("Invalid username");
+    }
+
+    @Test
+    void getProfile_ShouldReturnUserProfileDTO() {
+        // given
+        String authHeader = "Bearer jwt.token";
+        String username = "testuser";
+        when(jwtTockenUtils.getUsernameFromToken("jwt.token")).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        user.setEmail("test@example.com");
+        user.setPhone("+123456789");
+
+        // when
+        UserProfileDTO profile = userService.getProfile(authHeader);
+
+        // then
+        assertThat(profile.getUsername()).isEqualTo("testuser");
+        assertThat(profile.getFullName()).isEqualTo("Test User");
+        assertThat(profile.getEmail()).isEqualTo("test@example.com");
+        assertThat(profile.getPhone()).isEqualTo("+123456789");
+        assertThat(profile.getRole()).isEqualTo(Role.USER);
+    }
+
+    @Test
+    void updateProfile_ShouldUpdateFields() {
+        // given
+        String authHeader = "Bearer jwt.token";
+        String username = "testuser";
+        UpdateProfileRequest request = new UpdateProfileRequest();
+        request.setFullName("  New Name  ");
+        request.setEmail(" new@mail.com ");
+        request.setPhone("  +987654321  ");
+
+        when(jwtTockenUtils.getUsernameFromToken("jwt.token")).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        // when
+        userService.updateProfile(authHeader, request);
+
+        // then
+        assertThat(user.getFullName()).isEqualTo("New Name");
+        assertThat(user.getEmail()).isEqualTo("new@mail.com");
+        assertThat(user.getPhone()).isEqualTo("+987654321");
+        verify(userRepository).save(user);
+    }
+
+    @Test
+    void updateProfile_ShouldSetNull_WhenBlankValues() {
+        // given
+        String authHeader = "Bearer jwt.token";
+        String username = "testuser";
+        UpdateProfileRequest request = new UpdateProfileRequest();
+        request.setFullName("   ");
+        request.setEmail("");
+        request.setPhone(null);
+
+        when(jwtTockenUtils.getUsernameFromToken("jwt.token")).thenReturn(username);
+        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+
+        // when
+        userService.updateProfile(authHeader, request);
+
+        // then
+        assertThat(user.getFullName()).isNull();
+        assertThat(user.getEmail()).isNull();
+        assertThat(user.getPhone()).isNull();
+        verify(userRepository).save(user);
     }
 }
