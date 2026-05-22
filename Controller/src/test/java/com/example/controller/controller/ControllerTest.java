@@ -10,9 +10,9 @@ import com.example.controller.client.CartClient;
 import com.example.controller.client.ProductClient;
 import com.example.controller.client.UserClient;
 import com.example.controller.jwt.JwtTokenUtils;
+import com.example.controller.response.BuyerOrderResponse;
 import com.example.controller.response.SellerOrderResponse;
 import com.example.controller.response.SellerStatsResponse;
-import com.example.controller.response.BuyerOrderResponse;
 import com.example.controller.response.UserProfileResponse;
 import com.example.controller.service.ControllerService;
 import com.example.controller.service.GatewayPaymentService;
@@ -47,7 +47,7 @@ class ControllerTest {
 
     @MockitoBean
     private JwtTokenUtils jwtTokenUtils;
-  
+
     @MockitoBean
     private GatewayPaymentService gatewayPaymentService;
 
