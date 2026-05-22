@@ -280,6 +280,19 @@ class ControllerTest {
         product.setSellerId(sellerId);
         when(productClient.findProductById(productId)).thenReturn(product);
 
+        RecordCheckoutResponse recorded = new RecordCheckoutResponse();
+        recorded.setTotalRub(200.0);
+        when(userClient.recordCheckout(eq(token), any(RecordCheckoutRequest.class)))
+                .thenReturn(recorded);
+
+        // Мокируем вызов сервиса оплаты
+        CheckoutPaymentResponse paymentResponse = new CheckoutPaymentResponse();
+        paymentResponse.setConfirmationUrl("https://yookassa.ru/confirm");
+        paymentResponse.setPaymentId(777L);
+        paymentResponse.setMessage("Перенаправление на оплату");
+        when(gatewayPaymentService.startOnlinePayment(eq(token), any(RecordCheckoutResponse.class)))
+                .thenReturn(paymentResponse);
+
         // when
         mockMvc.perform(post("/checkout")
                         .header("Authorization", token)
@@ -287,10 +300,10 @@ class ControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 // then
                 .andExpect(status().isOk())
-                .andExpect(content().string("заказ оформлен"));
+                .andExpect(jsonPath("$.confirmationUrl").value("https://yookassa.ru/confirm"));
 
         verify(userClient).recordCheckout(eq(token), any(RecordCheckoutRequest.class));
-        verify(controllerService).buyProduct(any(BuyProductDTO.class)); // because paymentTiming=now
+        verify(controllerService, never()).buyProduct(any(BuyProductDTO.class));
     }
 
     @Test
